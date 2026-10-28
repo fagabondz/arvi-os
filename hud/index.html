@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ARVI</title>
+    <title>ARVI // Tactical Operating Layer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap");
@@ -25,10 +25,6 @@
 
       .hud-glow {
         box-shadow: 0 0 20px rgba(14, 165, 233, 0.15);
-      }
-
-      .hud-glow-emerald {
-        box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
       }
 
       .scanline {
@@ -55,10 +51,11 @@
     </style>
   </head>
   <body
-    class="min-h-screen p-4 flex flex-col gap-4 scanline select-none overflow-hidden"
+    class="h-screen w-screen p-4 flex flex-col gap-4 scanline select-none overflow-hidden"
   >
+    <!-- TOP STATUS BAR -->
     <header
-      class="hud-border p-3 rounded-lg flex items-center justify-between hud-glow"
+      class="hud-border p-3 rounded-lg flex items-center justify-between hud-glow flex-shrink-0"
     >
       <div class="flex items-center gap-3">
         <div class="w-3 h-3 rounded-full bg-cyan-400 animate-ping"></div>
@@ -69,8 +66,9 @@
             ARVI
             <span
               class="text-xs px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800"
-              >OS v0.1.0-GENESIS</span
             >
+              OS v0.1.0-GENESIS
+            </span>
           </h1>
           <p class="text-[10px] text-slate-400">
             COGNITIVE ENGINE: META MUSE SPARK 1.3 // SPATIAL: SAM 3.1
@@ -104,12 +102,14 @@
       </div>
     </header>
 
-    <main class="grid grid-cols-12 gap-4 flex-1 min-h-0">
+    <!-- MAIN HUD GRID -->
+    <main class="grid grid-cols-12 gap-4 flex-1 min-h-0 overflow-hidden">
+      <!-- LEFT PANEL: SPATIAL CORTEX / SAM 3.1 -->
       <section
-        class="col-span-3 hud-border rounded-lg p-3 flex flex-col gap-3 min-h-0"
+        class="col-span-3 hud-border rounded-lg p-3 flex flex-col gap-3 min-h-0 h-full overflow-hidden"
       >
         <div
-          class="flex justify-between items-center border-b border-cyan-950 pb-2"
+          class="flex justify-between items-center border-b border-cyan-950 pb-2 flex-shrink-0"
         >
           <h2 class="text-xs font-bold text-cyan-400 tracking-wider">
             ENV_CAM // SAM 3.1 SPATIAL
@@ -121,26 +121,37 @@
         </div>
 
         <div
-          class="relative flex-1 bg-black/60 rounded border border-slate-800 overflow-hidden flex items-center justify-center min-h-[220px]"
+          class="relative flex-1 min-h-0 bg-black/80 rounded border border-slate-800 overflow-hidden flex items-center justify-center"
         >
+          <video
+            id="webcam-feed"
+            autoplay
+            playsinline
+            muted
+            class="absolute inset-0 w-full h-full object-cover filter brightness-90 contrast-110"
+          ></video>
           <canvas
             id="spatial-canvas"
-            class="w-full h-full object-cover"
+            class="absolute inset-0 w-full h-full pointer-events-none z-10"
           ></canvas>
+
           <div
-            class="absolute top-2 left-2 text-[10px] text-cyan-400 bg-black/70 px-1.5 py-0.5 rounded border border-cyan-900"
+            class="absolute top-2 left-2 text-[10px] text-cyan-400 bg-black/80 px-1.5 py-0.5 rounded border border-cyan-900 z-20 flex items-center gap-1.5"
           >
-            MODE: ZERO-SHOT PERCEPTION
+            <span
+              class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"
+            ></span>
+            LIVE OPTICAL FEED
           </div>
           <div
-            class="absolute bottom-2 right-2 text-[10px] text-emerald-400 bg-black/70 px-1.5 py-0.5 rounded border border-emerald-900"
+            class="absolute bottom-2 right-2 text-[10px] text-emerald-400 bg-black/80 px-1.5 py-0.5 rounded border border-emerald-900 z-20"
             id="detected-tag"
           >
-            DETECTED: ESP32-S3 CORE
+            SAM 3.1: TRACKING READY
           </div>
         </div>
 
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-1.5 flex-shrink-0">
           <div class="flex justify-between text-[11px]">
             <span class="text-slate-400">Target Object:</span>
             <span class="text-white font-semibold" id="target-component"
@@ -163,17 +174,18 @@
 
         <button
           id="btn-scan"
-          class="mt-auto w-full py-2 bg-cyan-950 hover:bg-cyan-900 border border-cyan-600/50 text-cyan-200 text-xs font-bold rounded transition tracking-wider flex items-center justify-center gap-2"
+          class="flex-shrink-0 w-full py-2 bg-cyan-950 hover:bg-cyan-900 border border-cyan-600/50 text-cyan-200 text-xs font-bold rounded transition tracking-wider flex items-center justify-center gap-2"
         >
           <span>TRIGGER SAM 3.1 SEGMENTATION</span>
         </button>
       </section>
 
+      <!-- CENTER PANEL: ARVI CORE & DIALOGUE -->
       <section
-        class="col-span-6 hud-border rounded-lg p-3 flex flex-col gap-3 min-h-0"
+        class="col-span-6 hud-border rounded-lg p-3 flex flex-col gap-3 min-h-0 h-full overflow-hidden"
       >
         <div
-          class="flex justify-between items-center border-b border-cyan-950 pb-2"
+          class="flex justify-between items-center border-b border-cyan-950 pb-2 flex-shrink-0"
         >
           <h2 class="text-xs font-bold text-cyan-400 tracking-wider">
             ARVI CENTRAL ORCHESTRATOR
@@ -184,12 +196,12 @@
         </div>
 
         <div
-          class="h-44 bg-slate-950/40 rounded border border-slate-800/80 relative flex items-center justify-center overflow-hidden"
+          class="h-40 flex-shrink-0 bg-slate-950/40 rounded border border-slate-800/80 relative flex items-center justify-center overflow-hidden"
         >
           <canvas
             id="reactor-canvas"
             width="400"
-            height="180"
+            height="160"
             class="w-full h-full"
           ></canvas>
           <div class="absolute text-center pointer-events-none">
@@ -207,7 +219,7 @@
 
         <div
           id="dialogue-box"
-          class="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[160px] text-xs"
+          class="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 text-xs"
         >
           <div
             class="p-2 bg-slate-900/60 rounded border-l-2 border-slate-600 text-slate-300"
@@ -230,7 +242,7 @@
 
         <form
           id="command-form"
-          class="flex gap-2 pt-2 border-t border-cyan-950"
+          class="flex gap-2 pt-2 border-t border-cyan-950 flex-shrink-0"
         >
           <input
             id="cmd-input"
@@ -247,11 +259,12 @@
         </form>
       </section>
 
+      <!-- RIGHT PANEL: AGENT EXECUTION & TELEMETRY -->
       <section
-        class="col-span-3 hud-border rounded-lg p-3 flex flex-col gap-3 min-h-0"
+        class="col-span-3 hud-border rounded-lg p-3 flex flex-col gap-3 min-h-0 h-full overflow-hidden"
       >
         <div
-          class="flex justify-between items-center border-b border-cyan-950 pb-2"
+          class="flex justify-between items-center border-b border-cyan-950 pb-2 flex-shrink-0"
         >
           <h2 class="text-xs font-bold text-cyan-400 tracking-wider">
             MUSE CODE // EXECUTION SANDBOX
@@ -259,20 +272,23 @@
           <span class="text-[10px] text-slate-400">NODE: LAPTOP_01</span>
         </div>
 
+        <!-- Terminal Output (Scrolls independently) -->
         <div
-          class="flex-1 bg-black/80 rounded border border-slate-800 p-2 overflow-y-auto font-mono text-[11px] flex flex-col gap-1 text-slate-300 min-h-[220px]"
           id="terminal-output"
+          class="flex-1 min-h-0 bg-black/80 rounded border border-slate-800 p-2 overflow-y-auto font-mono text-[11px] flex flex-col gap-1 text-slate-300"
         >
           <span class="text-slate-500">$ arvi-agent --daemon active</span>
           <span class="text-cyan-400"
-            >[INFO] WebSocket client listening on port 8000</span
+            >[INFO] WebSocket client listening on port 8080</span
           >
           <span class="text-emerald-400"
             >[READY] Awaiting tool invocation from VPS Core...</span
           >
         </div>
 
-        <div class="flex flex-col gap-2 pt-2 border-t border-cyan-950">
+        <div
+          class="flex flex-col gap-2 pt-2 border-t border-cyan-950 flex-shrink-0"
+        >
           <div class="text-[10px] text-slate-400">TACTICAL PRESETS</div>
           <div class="grid grid-cols-2 gap-2">
             <button
@@ -309,7 +325,6 @@
     </main>
 
     <script>
-      // 1. WebSocket Client Setup (Ready to connect to server/main.py)
       const WS_URL = "ws://localhost:8080/ws/hud";
       let ws = null;
 
@@ -351,7 +366,6 @@
         }
       }
 
-      // 2. Command Form Handler
       document
         .getElementById("command-form")
         .addEventListener("submit", (e) => {
@@ -366,7 +380,6 @@
           if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: "user_command", command: val }));
           } else {
-            // Standalone simulation response if server is not yet started
             setTimeout(() => {
               appendDialogue(
                 "ARVI CORE // STANDBY",
@@ -385,9 +398,9 @@
         const isCyan = tone === "cyan";
         item.className = `p-2 rounded border-l-2 ${isCyan ? "bg-cyan-950/30 border-cyan-400 text-cyan-100" : "bg-slate-900/60 border-slate-500 text-slate-300"}`;
         item.innerHTML = `
-        <span class="text-[10px] ${isCyan ? "text-cyan-400" : "text-slate-400"} block font-mono font-bold">${sender}</span>
-        <div class="mt-0.5 leading-relaxed">${text}</div>
-      `;
+          <span class="text-[10px] ${isCyan ? "text-cyan-400" : "text-slate-400"} block font-mono font-bold">${sender}</span>
+          <div class="mt-0.5 leading-relaxed">${text}</div>
+        `;
         box.appendChild(item);
         box.scrollTop = box.scrollHeight;
       }
@@ -400,7 +413,6 @@
         term.scrollTop = term.scrollHeight;
       }
 
-      // 3. Tactical Presets
       function runPreset(type) {
         if (type === "diag") {
           appendTerminal("$ executing self-test diagnostic ping...");
@@ -439,7 +451,7 @@
         }
       }
 
-      // 4. Center Reactor Core Animation (Canvas)
+      // Reactor Animation
       const reactorCanvas = document.getElementById("reactor-canvas");
       const rCtx = reactorCanvas.getContext("2d");
       let angle = 0;
@@ -449,31 +461,27 @@
         const cx = reactorCanvas.width / 2;
         const cy = reactorCanvas.height / 2;
 
-        // Outer Rotating Arc
         rCtx.strokeStyle = "rgba(14, 165, 233, 0.4)";
         rCtx.lineWidth = 2;
         rCtx.beginPath();
-        rCtx.arc(cx, cy, 65, angle, angle + Math.PI * 1.2);
+        rCtx.arc(cx, cy, 55, angle, angle + Math.PI * 1.2);
         rCtx.stroke();
 
-        // Reverse Inner Arc
         rCtx.strokeStyle = "rgba(56, 189, 248, 0.6)";
         rCtx.lineWidth = 1.5;
         rCtx.beginPath();
-        rCtx.arc(cx, cy, 50, -angle * 1.5, -angle * 1.5 + Math.PI * 0.9);
+        rCtx.arc(cx, cy, 42, -angle * 1.5, -angle * 1.5 + Math.PI * 0.9);
         rCtx.stroke();
 
-        // Pulsing Core
-        const pulse = 24 + Math.sin(angle * 3) * 3;
+        const pulse = 20 + Math.sin(angle * 3) * 3;
         rCtx.fillStyle = "rgba(14, 165, 233, 0.15)";
         rCtx.beginPath();
         rCtx.arc(cx, cy, pulse, 0, Math.PI * 2);
         rCtx.fill();
 
-        // Center Dot
         rCtx.fillStyle = "#38bdf8";
         rCtx.beginPath();
-        rCtx.arc(cx, cy, 4, 0, Math.PI * 2);
+        rCtx.arc(cx, cy, 3, 0, Math.PI * 2);
         rCtx.fill();
 
         angle += 0.02;
@@ -481,44 +489,124 @@
       }
       renderReactor();
 
-      // 5. Left Panel Spatial Canvas Simulation
+      // Optical Camera & SAM 3.1 Overlay
+      const video = document.getElementById("webcam-feed");
       const spatialCanvas = document.getElementById("spatial-canvas");
       const sCtx = spatialCanvas.getContext("2d");
-      spatialCanvas.width = 300;
-      spatialCanvas.height = 200;
+      let scanY = 0;
+      let scanDirection = 1;
 
-      function renderSpatial() {
-        sCtx.fillStyle = "#020617";
-        sCtx.fillRect(0, 0, 300, 200);
-
-        // Grid Lines
-        sCtx.strokeStyle = "rgba(15, 23, 42, 0.8)";
-        for (let i = 0; i < 300; i += 20) {
-          sCtx.beginPath();
-          sCtx.moveTo(i, 0);
-          sCtx.lineTo(i, 200);
-          sCtx.stroke();
+      async function initWebcam() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          appendTerminal(
+            "[OPTICAL WARN] Camera requires HTTPS or http://localhost/127.0.0.1 origin.",
+          );
+          return;
         }
 
-        // Simulated Hardware Bounding Box (SAM 3.1)
-        sCtx.strokeStyle = "#06b6d4";
-        sCtx.lineWidth = 1.5;
-        sCtx.strokeRect(60, 40, 180, 110);
-
-        // Polygon Mask Fill
-        sCtx.fillStyle = "rgba(6, 182, 212, 0.12)";
-        sCtx.fillRect(60, 40, 180, 110);
-
-        // Label Corner
-        sCtx.fillStyle = "#06b6d4";
-        sCtx.font = "9px monospace";
-        sCtx.fillText("SAM 3.1 // CONFIDENCE: 98.7%", 65, 34);
-
-        requestAnimationFrame(renderSpatial);
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 640 }, height: { ideal: 480 } },
+            audio: false,
+          });
+          video.srcObject = stream;
+          appendTerminal(
+            "[OPTICAL] Hardware camera stream mounted successfully.",
+          );
+        } catch (err) {
+          console.warn("Webcam access error:", err);
+          appendTerminal(
+            `[OPTICAL WARN] Camera access: ${err.name || "Denied"}`,
+          );
+        }
       }
-      renderSpatial();
 
-      // Start WebSocket Attempt
+      function resizeSpatialCanvas() {
+        if (spatialCanvas.parentElement) {
+          spatialCanvas.width = spatialCanvas.parentElement.clientWidth;
+          spatialCanvas.height = spatialCanvas.parentElement.clientHeight;
+        }
+      }
+      window.addEventListener("resize", resizeSpatialCanvas);
+      setTimeout(resizeSpatialCanvas, 200);
+
+      function renderSpatialOverlay() {
+        sCtx.clearRect(0, 0, spatialCanvas.width, spatialCanvas.height);
+        const w = spatialCanvas.width;
+        const h = spatialCanvas.height;
+
+        // Center Reticle
+        sCtx.strokeStyle = "rgba(14, 165, 233, 0.4)";
+        sCtx.lineWidth = 1;
+        sCtx.beginPath();
+        sCtx.moveTo(w / 2 - 15, h / 2);
+        sCtx.lineTo(w / 2 + 15, h / 2);
+        sCtx.moveTo(w / 2, h / 2 - 15);
+        sCtx.lineTo(w / 2, h / 2 + 15);
+        sCtx.stroke();
+
+        // Bounding Box
+        const boxW = w * 0.6;
+        const boxH = h * 0.6;
+        const boxX = (w - boxW) / 2;
+        const boxY = (h - boxH) / 2;
+
+        sCtx.strokeStyle = "#00f0ff";
+        sCtx.lineWidth = 2;
+        const cl = 12;
+
+        sCtx.beginPath();
+        sCtx.moveTo(boxX, boxY + cl);
+        sCtx.lineTo(boxX, boxY);
+        sCtx.lineTo(boxX + cl, boxY);
+        sCtx.stroke();
+        sCtx.beginPath();
+        sCtx.moveTo(boxX + boxW - cl, boxY);
+        sCtx.lineTo(boxX + boxW, boxY);
+        sCtx.lineTo(boxX + boxW, boxY + cl);
+        sCtx.stroke();
+        sCtx.beginPath();
+        sCtx.moveTo(boxX, boxY + boxH - cl);
+        sCtx.lineTo(boxX, boxY + boxH);
+        sCtx.lineTo(boxX + cl, boxY + boxH);
+        sCtx.stroke();
+        sCtx.beginPath();
+        sCtx.moveTo(boxX + boxW - cl, boxY + boxH);
+        sCtx.lineTo(boxX + boxW, boxY + boxH);
+        sCtx.lineTo(boxX + boxW, boxY + boxH - cl);
+        sCtx.stroke();
+
+        // Laser Scan line
+        sCtx.strokeStyle = "rgba(0, 240, 255, 0.8)";
+        sCtx.lineWidth = 1.5;
+        sCtx.beginPath();
+        sCtx.moveTo(boxX, boxY + scanY);
+        sCtx.lineTo(boxX + boxW, boxY + scanY);
+        sCtx.stroke();
+
+        scanY += 1.8 * scanDirection;
+        if (scanY > boxH || scanY < 0) scanDirection *= -1;
+
+        sCtx.fillStyle = "#38bdf8";
+        sCtx.font = "9px monospace";
+        sCtx.fillText("SAM 3.1 // ZERO-SHOT TARGETING", boxX + 4, boxY - 6);
+
+        requestAnimationFrame(renderSpatialOverlay);
+      }
+
+      document.getElementById("btn-scan").addEventListener("click", () => {
+        appendTerminal(
+          "[SAM 3.1] Optical frame captured. Segmenting polygons...",
+        );
+        document.getElementById("detected-tag").textContent =
+          "DETECTED: HARDWARE COMPONENT";
+        document.getElementById("mask-status").textContent =
+          "Mask Computed (99.1%)";
+      });
+
+      // Init routines
+      initWebcam();
+      renderSpatialOverlay();
       connectWebSocket();
     </script>
   </body>

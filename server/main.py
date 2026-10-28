@@ -7,7 +7,6 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-# Muat variabel environment dari .env di root project
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 META_API_KEY = os.getenv("META_API_KEY", "")
@@ -23,12 +22,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pool koneksi WebSocket
 hud_clients: Set[WebSocket] = set()
 node_clients: Set[WebSocket] = set()
 
 def query_meta_muse(user_prompt: str, effort: str = "low") -> str:
-    """Mengirim instruksi ke Meta Model API (Muse Spark 1.3)"""
     if not META_API_KEY:
         return "[CONFIG ERROR] META_API_KEY belum disetel di file .env."
 
@@ -68,8 +65,6 @@ def query_meta_muse(user_prompt: str, effort: str = "low") -> str:
     except Exception as e:
         return f"[EXCEPTION] {str(e)}"
 
-
-# WebSocket Endpoint untuk Tactical HUD
 @app.websocket("/ws/hud")
 async def websocket_hud_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -77,10 +72,9 @@ async def websocket_hud_endpoint(websocket: WebSocket):
     print("[+] HUD connected to ARVI Core")
 
     try:
-        # Kirim notifikasi sambutan ke terminal HUD
         await websocket.send_text(json.dumps({
             "type": "agent_log",
-            "message": "[CORE] WebSocket handshake verified. Telemetry synchronized."
+            "message": "[CORE] Handshake verified. Two-way agentic dispatcher active."
         }))
 
         while True:
@@ -89,37 +83,38 @@ async def websocket_hud_endpoint(websocket: WebSocket):
 
             if data.get("type") == "user_command":
                 cmd = data.get("command", "")
-                print(f"[*] Received command from HUD: {cmd}")
+                lower_cmd = cmd.lower()
 
-                # Log proses ke terminal HUD
-                await websocket.send_text(json.dumps({
-                    "type": "agent_log",
-                    "message": f"[INFERENCE] Querying Muse Spark 1.3 for: '{cmd}'..."
-                }))
+                # Dispatcher Aksi Agen ke Node Laptop
+                if any(k in lower_cmd for k in ["cpu", "proses", "process", "berat", "hardware"]):
+                    for node in node_clients:
+                        await node.send_text(json.dumps({"action": "INSPECT_CPU"}))
+                    await websocket.send_text(json.dumps({
+                        "type": "agent_log",
+                        "message": "[AGENT ACTION] Dispatched INSPECT_CPU command to LAPTOP_01 node..."
+                    }))
 
-                # Jalankan inferensi Meta API di threadpool agar WebSocket tidak terblokir
+                elif any(k in lower_cmd for k in ["ping", "jaringan", "network", "latensi"]):
+                    for node in node_clients:
+                        await node.send_text(json.dumps({"action": "PING_NETWORK"}))
+                    await websocket.send_text(json.dumps({
+                        "type": "agent_log",
+                        "message": "[AGENT ACTION] Dispatched PING_NETWORK test to LAPTOP_01 node..."
+                    }))
+
+                # Inferensi Kognitif ARVI (Meta Muse Spark)
                 loop = asyncio.get_event_loop()
                 response_text = await loop.run_in_executor(None, query_meta_muse, cmd)
 
-                # Broadcast balasan ARVI ke HUD
                 await websocket.send_text(json.dumps({
                     "type": "arvi_response",
                     "text": response_text
                 }))
 
-                # Notifikasi node jika ada eksekusi terkait sistem lokal
-                for node in node_clients:
-                    await node.send_text(json.dumps({
-                        "event": "command_processed",
-                        "command": cmd
-                    }))
-
     except WebSocketDisconnect:
         hud_clients.remove(websocket)
         print("[-] HUD disconnected")
 
-
-# WebSocket Endpoint untuk Edge Nodes (Laptop / Mobile Node)
 @app.websocket("/ws/node")
 async def websocket_node_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -130,18 +125,30 @@ async def websocket_node_endpoint(websocket: WebSocket):
         while True:
             raw_data = await websocket.receive_text()
             data = json.loads(raw_data)
-            
-            # Meneruskan log aktivitas node langsung ke HUD
-            if data.get("type") == "telemetry":
+
+            msg_type = data.get("type")
+
+            # Forward telemetri periodik ke HUD
+            if msg_type == "telemetry":
                 for hud in hud_clients:
                     await hud.send_text(json.dumps({
                         "type": "agent_log",
                         "message": f"[NODE TELEMETRY] {data.get('payload')}"
                     }))
+
+            # Forward hasil eksekusi aksi agen ke terminal HUD
+            elif msg_type == "action_result":
+                for hud in hud_clients:
+                    output = data.get("output", "")
+                    for line in output.splitlines():
+                        await hud.send_text(json.dumps({
+                            "type": "agent_log",
+                            "message": line
+                        }))
+
     except WebSocketDisconnect:
         node_clients.remove(websocket)
         print("[-] Edge Node disconnected")
-
 
 if __name__ == "__main__":
     import uvicorn
