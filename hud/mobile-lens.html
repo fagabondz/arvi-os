@@ -1,0 +1,2638 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="theme-color" content="#e4e6ea" />
+    <title>ARVI Mobile Lens</title>
+    <style>      :root {
+        color-scheme: light;
+        --bg: #e4e6ea;
+        --card: #ffffff;
+        --card-2: #f9fafa;
+        --box: #f3f6f9;
+        --line: #e2e8f0;
+        --ink: #1e293b;
+        --text: #475569;
+        --label: #94a3b8;
+        --slate: #334155;
+        --slate-2: #475569;
+        --chip: #cbd5e1;
+        --pill: #f3f4f6;
+        --mint: #10b981;
+        --mint-bg: #d1fae5;
+        --mint-ink: #047857;
+        --indigo: #6366f1;
+        --amber: #f59e0b;
+        --rose: #e11d48;
+        --accent: var(--mint);
+        --shadow:
+          0 1px 2px rgba(15, 23, 42, 0.05),
+          0 10px 28px -10px rgba(15, 23, 42, 0.14);
+        --mono:
+          "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Mono", Menlo,
+          Consolas, monospace;
+      }
+      body[data-state="berpikir"] {
+        --accent: var(--indigo);
+      }
+      body[data-state="bicara"] {
+        --accent: #0ea5a4;
+      }
+      body[data-state="galat"] {
+        --accent: var(--amber);
+      }
+      body.merekam-aktif {
+        --accent: var(--rose);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html {
+        background: var(--bg);
+      }
+      body {
+        font-family:
+          Inter,
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        color: var(--ink);
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 0;
+        gap: 10px;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+      }
+      body > * {
+        width: 100%;
+        max-width: 480px;
+      }
+
+
+      #topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--card-2);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        padding: 11px 14px;
+        box-shadow: var(--shadow);
+      }
+      #topbar h1 {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      #topbar h1::before {
+        content: "";
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--mint);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+        animation: napas 2.4s ease-in-out infinite;
+      }
+      #topbar h1 small {
+        font: 500 9.5px var(--mono);
+        letter-spacing: 0.1em;
+        color: var(--label);
+        text-transform: uppercase;
+      }
+      #chip-link {
+        font: 600 10px var(--mono);
+        letter-spacing: 0.12em;
+        color: var(--slate);
+      }
+      #chip-link::before {
+        content: "\25CF  ";
+        color: var(--mint);
+      }
+      #chip-link.mati::before {
+        color: var(--rose);
+      }
+      #chip-link.mati {
+        color: var(--rose);
+      }
+      @keyframes napas {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.45;
+        }
+      }
+
+
+      #preview-wrap {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        background: #0f172a;
+        border-radius: 22px;
+        overflow: hidden;
+        border: 5px solid var(--card);
+        box-shadow: var(--shadow);
+      }
+      body.foto #preview-wrap {
+        border-color: var(--mint-bg);
+      }
+      #preview,
+      #beku {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      #preview.cermin,
+      #beku.cermin {
+        transform: scaleX(-1);
+      }
+      #beku {
+        position: absolute;
+        inset: 0;
+        display: none;
+        z-index: 1;
+      }
+      body.foto #pesan-native {
+        display: none !important;
+      }
+      #preview-wrap::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        background: radial-gradient(
+          120% 90% at 50% 50%,
+          transparent 60%,
+          rgba(15, 23, 42, 0.35)
+        );
+      }
+      .sudut {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        z-index: 3;
+        pointer-events: none;
+        border: 0 solid rgba(255, 255, 255, 0.95);
+        filter: drop-shadow(0 1px 3px rgba(15, 23, 42, 0.6));
+      }
+      .s1 {
+        top: 8px;
+        left: 8px;
+        border-top-width: 2px;
+        border-left-width: 2px;
+        border-top-left-radius: 8px;
+      }
+      .s2 {
+        top: 8px;
+        right: 8px;
+        border-top-width: 2px;
+        border-right-width: 2px;
+        border-top-right-radius: 8px;
+      }
+      .s3 {
+        bottom: 8px;
+        left: 8px;
+        border-bottom-width: 2px;
+        border-left-width: 2px;
+        border-bottom-left-radius: 8px;
+      }
+      .s4 {
+        bottom: 8px;
+        right: 8px;
+        border-bottom-width: 2px;
+        border-right-width: 2px;
+        border-bottom-right-radius: 8px;
+      }
+      .retikel {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 40px;
+        height: 40px;
+        margin: -20px 0 0 -20px;
+        z-index: 3;
+        pointer-events: none;
+        opacity: 0.7;
+        filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.6));
+        background:
+          linear-gradient(#fff, #fff) 50% 0 / 1.5px 10px no-repeat,
+          linear-gradient(#fff, #fff) 50% 100% / 1.5px 10px no-repeat,
+          linear-gradient(#fff, #fff) 0 50% / 10px 1.5px no-repeat,
+          linear-gradient(#fff, #fff) 100% 50% / 10px 1.5px no-repeat;
+      }
+      body.foto .retikel {
+        display: none;
+      }
+      #preview-wrap::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 40%;
+        z-index: 3;
+        pointer-events: none;
+        opacity: 0;
+        background: linear-gradient(to bottom, transparent, var(--accent));
+        transform: translateY(-100%);
+      }
+      body[data-state="berpikir"] #preview-wrap::after,
+      body.merekam-aktif #preview-wrap::after {
+        opacity: 0.28;
+        animation: sapu 1.7s linear infinite;
+      }
+      @keyframes sapu {
+        to {
+          transform: translateY(250%);
+        }
+      }
+
+      #hitung {
+        position: absolute;
+        inset: 0;
+        display: none;
+        z-index: 5;
+        align-items: center;
+        justify-content: center;
+        font: 700 72px var(--mono);
+        color: #fff;
+        background: rgba(15, 23, 42, 0.4);
+      }
+      #pesan-native {
+        position: absolute;
+        inset: 0;
+        display: none;
+        z-index: 4;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 0 28px;
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--box);
+      }
+      #chip-kamera,
+      #badge-foto,
+      #btn-flip {
+        position: absolute;
+        z-index: 6;
+      }
+      #chip-kamera,
+      #badge-foto {
+        font: 600 9.5px var(--mono);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--slate);
+        background: rgba(255, 255, 255, 0.88);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        border-radius: 999px;
+        padding: 5px 11px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+      }
+      #chip-kamera {
+        top: 14px;
+        left: 16px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      #chip-kamera::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--rose);
+        animation: napas 1.6s ease-in-out infinite;
+      }
+      #badge-foto {
+        left: 16px;
+        bottom: 14px;
+        display: none;
+        background: var(--mint-bg);
+        color: var(--mint-ink);
+      }
+      #btn-flip {
+        top: 10px;
+        right: 12px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--slate);
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition:
+          transform 0.45s cubic-bezier(0.3, 1.4, 0.5, 1),
+          background 0.2s;
+      }
+      #btn-flip svg {
+        width: 21px;
+        height: 21px;
+      }
+      #btn-flip:active {
+        background: var(--mint-bg);
+      }
+      #btn-flip.putar {
+        transform: rotate(180deg);
+      }
+      #btn-flip:disabled {
+        opacity: 0.45;
+      }
+
+
+      #kartu-chat {
+        background: var(--card);
+        border-radius: 20px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        box-shadow: var(--shadow);
+      }
+      #kepala-chat {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 2px 2px 0;
+      }
+      #wajah {
+        position: relative;
+        flex-shrink: 0;
+        width: 78px;
+        height: 54px;
+        border-radius: 50%;
+        background: radial-gradient(ellipse at 50% 30%, #ffffff 45%, #eef0f3);
+        box-shadow:
+          inset 0 -5px 10px rgba(15, 23, 42, 0.05),
+          0 6px 16px -4px rgba(15, 23, 42, 0.22);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #wajah .mata {
+        display: block;
+        width: 9px;
+        height: 13px;
+        border-radius: 50%;
+        background: #2b2f36;
+        animation: kedip 5s infinite;
+        transition:
+          height 0.25s,
+          width 0.25s;
+      }
+      #wajah .garis {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background: #4b4e54;
+        transition:
+          transform 0.2s,
+          background 0.2s;
+      }
+      @keyframes kedip {
+        0%,
+        94%,
+        100% {
+          transform: scaleY(1);
+        }
+        97% {
+          transform: scaleY(0.1);
+        }
+      }
+      body.merekam-aktif #wajah .mata {
+        height: 16px;
+        width: 10px;
+      }
+      body[data-state="berpikir"] #wajah {
+        animation: lirik 1.6s ease-in-out infinite;
+      }
+      @keyframes lirik {
+        0%,
+        100% {
+          transform: translateX(-3px);
+        }
+        50% {
+          transform: translateX(3px);
+        }
+      }
+      body[data-state="bicara"] #wajah .garis {
+        animation: bicara 0.5s ease-in-out infinite;
+      }
+      @keyframes bicara {
+        0%,
+        100% {
+          transform: scaleY(1);
+        }
+        50% {
+          transform: scaleY(2.6);
+        }
+      }
+      #info-arvi {
+        flex: 1;
+        min-width: 0;
+      }
+      #label-arvi {
+        font: 500 11px var(--mono);
+        letter-spacing: 0.16em;
+        color: var(--slate);
+        text-transform: uppercase;
+      }
+      #label-arvi span {
+        display: none;
+      }
+      #label-arvi .l-idle {
+        display: inline;
+      }
+      body.merekam-aktif #label-arvi span,
+      body[data-state] #label-arvi span {
+        display: none;
+      }
+      body.merekam-aktif #label-arvi .l-rec {
+        display: inline;
+      }
+      body[data-state="berpikir"]:not(.merekam-aktif) #label-arvi .l-pikir {
+        display: inline;
+      }
+      body[data-state="bicara"]:not(.merekam-aktif) #label-arvi .l-bicara {
+        display: inline;
+      }
+      body[data-state="galat"]:not(.merekam-aktif) #label-arvi .l-galat {
+        display: inline;
+      }
+      body:not(.merekam-aktif):not([data-state="berpikir"]):not(
+          [data-state="bicara"]
+        ):not([data-state="galat"])
+        #label-arvi
+        .l-idle {
+        display: inline;
+      }
+      .eq {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        height: 22px;
+        flex-shrink: 0;
+      }
+      .eq i {
+        display: block;
+        width: 3px;
+        height: 5px;
+        border-radius: 2px;
+        background: var(--label);
+      }
+      body.merekam-aktif .eq i {
+        background: var(--rose);
+        animation: eq 0.9s ease-in-out infinite;
+      }
+      body[data-state="berpikir"] .eq i {
+        background: var(--indigo);
+        animation: eq 1.4s ease-in-out infinite;
+      }
+      .eq i:nth-child(2) {
+        animation-delay: -0.2s;
+      }
+      .eq i:nth-child(3) {
+        animation-delay: -0.45s;
+      }
+      .eq i:nth-child(4) {
+        animation-delay: -0.65s;
+      }
+      .eq i:nth-child(5) {
+        animation-delay: -0.1s;
+      }
+      @keyframes eq {
+        0%,
+        100% {
+          height: 5px;
+        }
+        50% {
+          height: 21px;
+        }
+      }
+
+      #panel-suara {
+        background: var(--box);
+        border-radius: 12px;
+        padding: 10px 12px;
+      }
+      .lbl-mini {
+        font: 500 9px var(--mono);
+        letter-spacing: 0.14em;
+        color: var(--label);
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      #dengar {
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--ink);
+        min-height: 21px;
+        word-break: break-word;
+      }
+
+      #hasil {
+        position: relative;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--ink);
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 24px 12px 12px;
+        white-space: pre-wrap;
+        display: none;
+        user-select: text;
+        -webkit-user-select: text;
+        max-height: 30vh;
+        overflow-y: auto;
+        animation: masuk 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+      }
+      #hasil::before {
+        content: "ARVI // RESPONSE";
+        position: absolute;
+        top: 9px;
+        left: 12px;
+        font: 500 9px var(--mono);
+        letter-spacing: 0.14em;
+        color: var(--label);
+      }
+      #hasil::-webkit-scrollbar {
+        width: 6px;
+      }
+      #hasil::-webkit-scrollbar-thumb {
+        background: var(--chip);
+        border-radius: 3px;
+      }
+      @keyframes masuk {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+      }
+
+
+      body > #status {
+        width: fit-content;
+        max-width: 100%;
+        align-self: center;
+        font: 600 10.5px var(--mono);
+        letter-spacing: 0.04em;
+        text-align: center;
+        color: var(--mint-ink);
+        background: var(--mint-bg);
+        border-radius: 8px;
+        padding: 6px 12px;
+        min-height: 26px;
+        transition:
+          background 0.25s,
+          color 0.25s;
+      }
+      body[data-state="berpikir"] > #status {
+        color: #4338ca;
+        background: #e0e7ff;
+      }
+      body[data-state="bicara"] > #status {
+        color: #0f766e;
+        background: #ccfbf1;
+      }
+      body[data-state="galat"] > #status {
+        color: #b45309;
+        background: #fef3c7;
+      }
+      body.merekam-aktif > #status {
+        color: #be123c;
+        background: #ffe4e6;
+      }
+
+
+      #flag-hint {
+        font-size: 11px;
+        color: var(--label);
+        text-align: center;
+        display: none;
+        cursor: pointer;
+        line-height: 1.6;
+      }
+      #flag-hint code {
+        color: var(--text);
+        word-break: break-all;
+        font-family: var(--mono);
+      }
+      #banner-stt {
+        display: none;
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+        border-radius: 16px;
+        padding: 12px 14px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #92400e;
+      }
+      #kotak-flag-origin {
+        margin-top: 8px;
+        background: #fff;
+        border: 1px dashed #fbbf24;
+        border-radius: 10px;
+        padding: 8px 10px;
+        cursor: pointer;
+      }
+      #kotak-flag-origin code {
+        color: #78350f;
+        word-break: break-all;
+        font-family: var(--mono);
+      }
+      #kotak-flag-origin .kecil {
+        font-size: 11px;
+        color: #b45309;
+      }
+
+      details#bantuan {
+        font-size: 12px;
+        color: var(--text);
+        background: var(--card-2);
+        border-radius: 14px;
+        padding: 9px 14px;
+        box-shadow: var(--shadow);
+      }
+      details#bantuan summary {
+        cursor: pointer;
+        list-style: none;
+        font: 500 10.5px var(--mono);
+        letter-spacing: 0.1em;
+        color: var(--label);
+      }
+      details#bantuan summary::-webkit-details-marker {
+        display: none;
+      }
+      #petunjuk {
+        margin-top: 8px;
+        line-height: 1.8;
+      }
+
+
+      #dock {
+        position: sticky;
+        bottom: 0;
+        z-index: 20;
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+        background: rgba(249, 250, 250, 0.9);
+        -webkit-backdrop-filter: blur(18px) saturate(140%);
+        backdrop-filter: blur(18px) saturate(140%);
+        border-radius: 26px 26px 0 0;
+        box-shadow: 0 -10px 30px -12px rgba(15, 23, 42, 0.2);
+      }
+      #baris-prompt {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        background: #fff;
+        border-radius: 999px;
+        padding: 5px 5px 5px 6px;
+        box-shadow: inset 0 0 0 1px var(--line);
+      }
+      #prompt {
+        flex: 1;
+        min-width: 0;
+        background: transparent;
+        border: none;
+        color: var(--ink);
+        padding: 10px 12px;
+        font-size: 16px;
+        user-select: text;
+        -webkit-user-select: text;
+      }
+      #prompt::placeholder {
+        color: var(--label);
+      }
+      #prompt:focus {
+        outline: none;
+      }
+      #baris-prompt:focus-within {
+        box-shadow: inset 0 0 0 1.5px var(--slate);
+      }
+      #baris-prompt:has(#prompt.sorot) {
+        box-shadow: inset 0 0 0 2px var(--amber);
+      }
+      #btn-submit-teks {
+        flex-shrink: 0;
+        height: 42px;
+        padding: 0 20px;
+        border: none;
+        border-radius: 999px;
+        cursor: pointer;
+        font:
+          600 14px Inter,
+          "Segoe UI",
+          system-ui,
+          sans-serif;
+        color: #fff;
+        background: var(--slate);
+        transition:
+          transform 0.12s,
+          background 0.2s;
+      }
+      #btn-submit-teks:active {
+        transform: scale(0.95);
+        background: var(--ink);
+      }
+
+      #baris-aksi {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 12px;
+      }
+      .tombol-aksi {
+        border: none;
+        cursor: pointer;
+        color: #fff;
+        font-weight: 600;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        transition:
+          transform 0.12s,
+          background 0.25s,
+          box-shadow 0.25s;
+      }
+      .tombol-aksi:active {
+        transform: scale(0.95);
+      }
+      #btn-scan {
+        grid-column: 1;
+        height: 58px;
+        border-radius: 18px;
+        font-size: 14px;
+        color: var(--slate);
+        background: var(--pill);
+        box-shadow: inset 0 0 0 1px var(--chip);
+      }
+      #btn-scan:disabled {
+        opacity: 0.5;
+      }
+      #btn-micinstruksi {
+        grid-column: 3;
+        height: 58px;
+        border-radius: 18px;
+        display: none;
+        font: 600 10.5px var(--mono);
+        letter-spacing: 0.04em;
+        line-height: 1.2;
+        background: var(--indigo);
+        box-shadow: 0 8px 20px -8px rgba(99, 102, 241, 0.7);
+      }
+      #btn-micinstruksi svg {
+        width: 21px;
+        height: 21px;
+        display: block;
+        margin: 0 auto 3px;
+      }
+      #btn-micinstruksi.merekam {
+        background: var(--rose);
+        animation: denyut 1.1s ease-in-out infinite;
+      }
+
+
+      #btn-walkie {
+        grid-column: 2;
+        position: relative;
+        width: 98px;
+        height: 98px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        background: radial-gradient(
+          circle at 35% 28%,
+          #475569 0%,
+          #334155 55%,
+          #1e293b 100%
+        );
+        box-shadow:
+          0 0 0 6px rgba(51, 65, 85, 0.08),
+          0 14px 28px -8px rgba(30, 41, 59, 0.6),
+          inset 0 2px 6px rgba(255, 255, 255, 0.18);
+        animation: orb 3.2s ease-in-out infinite;
+      }
+      #btn-walkie svg {
+        width: 30px;
+        height: 30px;
+        color: #fff;
+      }
+      #btn-walkie .lbl {
+        font: 600 9px var(--mono);
+        letter-spacing: 0.14em;
+        color: #cbd5e1;
+        text-transform: uppercase;
+      }
+      #btn-walkie .lbl-rec {
+        display: none;
+      }
+      #btn-walkie::before,
+      #btn-walkie::after {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        border-radius: 50%;
+        border: 2px solid var(--rose);
+        opacity: 0;
+        pointer-events: none;
+      }
+      #btn-walkie.merekam {
+        background: radial-gradient(
+          circle at 35% 28%,
+          #fb7185 0%,
+          #e11d48 55%,
+          #9f1239 100%
+        );
+        box-shadow:
+          0 0 0 6px rgba(225, 29, 72, 0.14),
+          0 14px 32px -6px rgba(225, 29, 72, 0.7),
+          inset 0 2px 6px rgba(255, 255, 255, 0.3);
+        animation: none;
+        transform: scale(1.06);
+      }
+      #btn-walkie.merekam .lbl {
+        color: #fff;
+      }
+      #btn-walkie.merekam .lbl-idle {
+        display: none;
+      }
+      #btn-walkie.merekam .lbl-rec {
+        display: inline;
+      }
+      #btn-walkie.merekam::before {
+        animation: cincin 1.5s ease-out infinite;
+      }
+      #btn-walkie.merekam::after {
+        animation: cincin 1.5s ease-out 0.75s infinite;
+      }
+      @keyframes cincin {
+        from {
+          opacity: 0.8;
+          transform: scale(1);
+        }
+        to {
+          opacity: 0;
+          transform: scale(1.7);
+        }
+      }
+      @keyframes denyut {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.5);
+        }
+        50% {
+          box-shadow: 0 0 0 10px rgba(225, 29, 72, 0);
+        }
+      }
+      @keyframes orb {
+        0%,
+        100% {
+          box-shadow:
+            0 0 0 6px rgba(51, 65, 85, 0.08),
+            0 14px 28px -8px rgba(30, 41, 59, 0.6),
+            inset 0 2px 6px rgba(255, 255, 255, 0.18);
+        }
+        50% {
+          box-shadow:
+            0 0 0 11px rgba(16, 185, 129, 0.1),
+            0 14px 32px -6px rgba(30, 41, 59, 0.7),
+            inset 0 2px 6px rgba(255, 255, 255, 0.18);
+        }
+      }
+      #hint-tahan {
+        text-align: center;
+        font: 500 9.5px var(--mono);
+        letter-spacing: 0.12em;
+        color: var(--label);
+        text-transform: uppercase;
+        margin-top: -4px;
+      }
+
+
+      #baris-toggle {
+        display: flex;
+        gap: 8px;
+      }
+      .tombol-toggle {
+        flex: 1;
+        height: 40px;
+        border: none;
+        border-radius: 14px;
+        cursor: pointer;
+        font: 600 12.5px Inter, "Segoe UI", system-ui, sans-serif;
+        color: var(--slate);
+        background: var(--pill);
+        box-shadow: inset 0 0 0 1px var(--chip);
+      }
+      .tombol-toggle:active {
+        transform: scale(0.97);
+      }
+      .tombol-toggle.aktif {
+        color: #fff;
+        background: var(--indigo);
+        box-shadow: 0 8px 20px -8px rgba(99, 102, 241, 0.7);
+      }
+      #chip-file {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border-radius: 12px;
+        padding: 8px 8px 8px 12px;
+        box-shadow: inset 0 0 0 1px var(--line);
+        font: 500 12px var(--mono);
+        color: var(--slate);
+      }
+      #nama-file-chip {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      #btn-lepas-file {
+        flex-shrink: 0;
+        width: 30px;
+        height: 30px;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 13px;
+        color: #fff;
+        background: var(--rose);
+      }
+      .tombol-topbar {
+        display: flex;
+        gap: 6px;
+      }
+      .tombol-topbar button {
+        border: none;
+        border-radius: 999px;
+        cursor: pointer;
+        font: 600 10.5px var(--mono);
+        letter-spacing: 0.04em;
+        color: var(--slate);
+        background: var(--pill);
+        box-shadow: inset 0 0 0 1px var(--chip);
+        padding: 7px 11px;
+      }
+      .tombol-topbar button.mati {
+        color: var(--rose);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+</style>
+  </head>
+  <body>
+    <div id="topbar">
+      <h1>ARVI <small>Lens v1.0</small></h1>
+      <span class="tombol-topbar">
+        <button id="btn-audio" type="button" title="Mute/unmute ARVI voice">
+          🔊 Audio
+        </button>
+        <button id="btn-cam" type="button" title="Turn the camera off/on">
+          📷 Cam
+        </button>
+      </span>
+      <span id="chip-link">ONLINE</span>
+    </div>
+
+    <div id="preview-wrap">
+      <video id="preview" autoplay playsinline muted></video>
+      <img id="beku" alt="Locked photo" />
+      <i class="sudut s1"></i><i class="sudut s2"></i><i class="sudut s3"></i
+      ><i class="sudut s4"></i>
+      <i class="retikel"></i>
+      <div id="pesan-native">
+        Native Camera Mode Active (HTTP-safe).<br />Tap 📷 Scan below.
+      </div>
+      <div id="hitung">1</div>
+      <span id="chip-kamera">Rear camera</span>
+      <span id="badge-foto">📌 Photo locked</span>
+      <button
+        id="btn-flip"
+        type="button"
+        aria-label="Switch front/rear camera"
+        title="Switch front/rear camera"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.9"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M20 7h-9a5 5 0 0 0-5 5v1M4 17h9a5 5 0 0 0 5-5v-1" />
+          <path d="m17 4 3 3-3 3M7 20l-3-3 3-3" />
+        </svg>
+      </button>
+    </div>
+
+    <div id="kartu-chat">
+      <div id="kepala-chat">
+        <div id="wajah" aria-hidden="true">
+          <i class="mata"></i><i class="garis"></i><i class="mata"></i>
+        </div>
+        <div id="info-arvi">
+          <div id="label-arvi">
+            <span class="l-idle">ARVI Listening</span>
+            <span class="l-rec">Hearing you</span>
+            <span class="l-pikir">Processing</span>
+            <span class="l-bicara">Speaking</span>
+            <span class="l-galat">Attention</span>
+          </div>
+        </div>
+        <div class="eq" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+      </div>
+      <div id="panel-suara">
+        <div class="lbl-mini">Phone // User</div>
+        <div id="dengar" aria-live="polite">
+          Select mode: Walkie-Talkie or Scan Object...
+        </div>
+      </div>
+      <div id="hasil" aria-live="polite"></div>
+    </div>
+    <div id="status" aria-live="polite">Opening phone camera...</div>
+
+    <input
+      id="kamera-hp-native"
+      type="file"
+      accept="image/*"
+      capture="environment"
+      style="display: none"
+    />
+
+    <input
+      id="file-hp"
+      type="file"
+      accept=".jpg,.jpeg,.png,.webp,.pdf,.txt,.md,.csv,.json,.xml,.yaml,.yml,.ini,.env,.py,.js,.ts,.html,.css,.sh,.ps1,.bat,.sql,.log"
+      style="display: none"
+    />
+
+    <div id="flag-hint">
+      📹 Live stream blocked by Chrome (HTTP). Tap to copy the live-video
+      setting:<br />
+      <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code>
+    </div>
+    <div id="banner-stt">
+      <div>
+        <b>🎙 Browser mic blocked (HTTP).</b> Pick one: tap the field then the
+        🎙 icon on the phone keyboard to dictate (auto-send), or allow permanently:
+      </div>
+      <div id="kotak-flag-origin">
+        Tap to copy the origin URL: <code id="origin-hp"></code><br />
+        <span class="kecil"
+          >To let phone Chrome allow the Mic &amp; Live Camera buttons without
+          HTTPS: open a new tab -&gt; paste
+          <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code>
+          -&gt; enter the origin URL -&gt; pick Enabled -&gt; Relaunch.</span
+        >
+      </div>
+    </div>
+
+    <div id="dock">
+      <div id="baris-toggle">
+        <button id="btn-attach" class="tombol-toggle" type="button">
+          📎 Attach
+        </button>
+        <button id="btn-handsfree" class="tombol-toggle" type="button">
+          👐 Hands-Free: OFF
+        </button>
+      </div>
+      <div id="chip-file">
+        <span>📎</span>
+        <span id="nama-file-chip"></span>
+        <button id="btn-lepas-file" type="button" aria-label="Remove attachment">
+          ✕
+        </button>
+      </div>
+      <div id="baris-prompt">
+        <input
+          id="prompt"
+          type="text"
+          value=""
+          placeholder="Ask ARVI or type an OS command..."
+          enterkeyhint="send"
+          autocomplete="off"
+        />
+        <button id="btn-submit-teks" type="button" aria-label="Send">
+          Send
+        </button>
+      </div>
+      <div id="baris-aksi">
+        <button id="btn-scan" class="tombol-aksi" type="button">📷 Scan</button>
+        <button
+          id="btn-walkie"
+          class="tombol-aksi"
+          type="button"
+          aria-label="Hold to speak to ARVI"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.9"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="9" y="3" width="6" height="11" rx="3" />
+            <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+          </svg>
+          <span class="lbl lbl-idle">Hold to talk</span>
+          <span class="lbl lbl-rec">Listening</span>
+        </button>
+        <button
+          id="btn-micinstruksi"
+          class="tombol-aksi"
+          type="button"
+          aria-label="Hold and speak about this photo"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.9"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="9" y="3" width="6" height="11" rx="3" />
+            <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+          </svg>
+          <span>HOLD · ASK PHOTO</span>
+        </button>
+      </div>
+      <div id="hint-tahan">Hold to speak · release to send</div>
+    </div>
+
+    <script>      var API_BASE = window.location.origin;
+
+      var TOKEN_HP = "";
+      try {
+        TOKEN_HP = new URLSearchParams(window.location.search).get("t") || "";
+      } catch (err) {
+        TOKEN_HP = "";
+      }
+      function kepalaAuth() {
+        var h = { "Content-Type": "application/json" };
+        if (TOKEN_HP) h.Authorization = "Bearer " + TOKEN_HP;
+        return h;
+      }
+      var video = document.getElementById("preview");
+      var bekuImg = document.getElementById("beku");
+      var hitungEl = document.getElementById("hitung");
+      var statusEl = document.getElementById("status");
+      var hasilEl = document.getElementById("hasil");
+      var promptEl = document.getElementById("prompt");
+      var dengarTeks = document.getElementById("dengar");
+      var btnWalkie = document.getElementById("btn-walkie");
+      var btnScan = document.getElementById("btn-scan");
+      var btnMicFoto = document.getElementById("btn-micinstruksi");
+      var btnSubmit = document.getElementById("btn-submit-teks");
+      var btnAttach = document.getElementById("btn-attach");
+      var btnHandsfree = document.getElementById("btn-handsfree");
+      var btnAudio = document.getElementById("btn-audio");
+      var btnCam = document.getElementById("btn-cam");
+      var chipFile = document.getElementById("chip-file");
+      var namaFileChip = document.getElementById("nama-file-chip");
+      var btnLepasFile = document.getElementById("btn-lepas-file");
+      var inputFileHp = document.getElementById("file-hp");
+      var kameraHpNative = document.getElementById("kamera-hp-native");
+      var flagHint = document.getElementById("flag-hint");
+      var btnFlip = document.getElementById("btn-flip");
+      var chipKamera = document.getElementById("chip-kamera");
+      var badgeFoto = document.getElementById("badge-foto");
+      var facing = "environment";
+      var sedangGanti = false;
+      var audioAktif = null;
+      var fotoTerkunci = null;
+      var sttDiblokir = false;
+      var sedangKirim = false;
+      var fileTerlampir = null;
+      var audioMenyala = true;
+      var camMatiManual = false;
+      var handsFreeAktif = false;
+      var kunciLayar = null;
+      var timerUlangHF = null;
+      var jawabanTerakhirHp = "";
+      var waktuJawabanHp = 0;
+      var teksSuaraBerikutnyaHp = false;
+
+
+      function normalisasiNamaArvi(teks) {
+        if (!teks) return teks;
+        var hasil = String(teks);
+        hasil = hasil.replace(
+          /\b(hai|halo|hei|hello|oi|tolong|coba)\s+arti\b/gi,
+          "$1 Arvi",
+        );
+        hasil = hasil.replace(/(^|[.!?]\s+)(arti)(?=[,\s]|$)/gim, "$1Arvi");
+        return hasil.replace(
+          /\b(arfi|arbi|alfi|arvy|harfi|arvie|rv|arvee|arpi|arwi|harvi)\b/gi,
+          "Arvi",
+        );
+      }
+
+
+      var PESAN_ULANGI_ARVI =
+        "Maaf, perintahnya belum tertangkap. Ulangi dengan awalan Arvi.";
+      var ALIAS_AWALAN_SUARA_HP = ["avi", "awi", "ari"];
+      var ISI_TAK_JELAS_HP = ["eh", "anu", "hmm", "mmm", "ehm", "heh"];
+
+      function kataPertamaSuaraHp(rendah) {
+        var cocok = String(rendah || "").match(/[a-z]+/);
+        return cocok ? cocok[0] : "";
+      }
+
+      function saringTranskripSuaraHp(transkrip) {
+        var mentah = String(transkrip || "").trim();
+        if (!mentah) return null;
+        var normal = normalisasiNamaArvi(mentah);
+        var sisa;
+        if (kataPertamaSuaraHp(normal.toLowerCase()) === "arvi") {
+          sisa = normal.replace(/^[^a-zA-Z]*arvi\b/i, "");
+        } else if (
+          ALIAS_AWALAN_SUARA_HP.indexOf(
+            kataPertamaSuaraHp(mentah.toLowerCase()),
+          ) >= 0
+        ) {
+          sisa = mentah.replace(/^[^a-zA-Z]*[a-zA-Z]+/, "");
+        } else {
+          return null;
+        }
+        sisa = sisa
+          .trim()
+          .replace(/^[,.:;!?\-–— ]+/, "")
+          .trim();
+        if (!/[a-zA-Z0-9]/.test(sisa)) return { takJelas: true };
+        if (ISI_TAK_JELAS_HP.indexOf(sisa.toLowerCase()) >= 0)
+          return { takJelas: true };
+        return { perintah: mentah, sisa: sisa };
+      }
+
+
+      function miripGemaHp(transkrip) {
+        if (!jawabanTerakhirHp) return false;
+        if (Date.now() - waktuJawabanHp > 15000) return false;
+        function normal(s) {
+          return String(s || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9 ]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+        }
+        var trans = normal(transkrip);
+        var ucap = normal(jawabanTerakhirHp);
+        if (!trans || !ucap) return false;
+        if (trans.length >= 4 && ucap.indexOf(trans) >= 0) return true;
+        var kata = trans.split(" ").filter(Boolean);
+        if (kata.length < 2) return false;
+        var himp = {};
+        ucap.split(" ").forEach(function (k) {
+          if (k) himp[k] = 1;
+        });
+        var cocok = kata.filter(function (k) {
+          return himp[k];
+        }).length;
+        return cocok / kata.length >= 0.5;
+      }
+
+      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      var stt = null;
+      var segmenFinal = "";
+      var kirimTertunda = null;
+      var pengamanKirim = null;
+
+      function setStatus(teks) {
+        statusEl.textContent = teks;
+      }
+
+      function hentikanAudioHp() {
+        if (audioAktif) {
+          try {
+            audioAktif.pause();
+          } catch (err) {
+
+          }
+          audioAktif = null;
+        }
+        try {
+          if (window.speechSynthesis) window.speechSynthesis.cancel();
+        } catch (err) {
+
+        }
+      }
+
+      async function putarJawabanDiHp(teks) {
+        hentikanAudioHp();
+        if (!audioMenyala || !teks) {
+          jadwalUlangHandsfree();
+          return;
+        }
+        try {
+          var res = await fetch(API_BASE + "/api/tts", {
+            method: "POST",
+            headers: kepalaAuth(),
+            body: JSON.stringify({ text: teks, voice_id: "", model_id: "" }),
+          });
+          if (res.ok) {
+            var blob = await res.blob();
+            var url = URL.createObjectURL(blob);
+            var audio = new Audio(url);
+            audioAktif = audio;
+            audio.onended = function () {
+              try {
+                URL.revokeObjectURL(url);
+              } catch (err) {
+
+              }
+              if (audioAktif === audio) audioAktif = null;
+              jadwalUlangHandsfree();
+            };
+            audio.onerror = function () {
+              try {
+                URL.revokeObjectURL(url);
+              } catch (err) {
+
+              }
+              if (audioAktif === audio) audioAktif = null;
+              bicaraBawaanHp(teks);
+            };
+            await audio.play();
+            return;
+          }
+        } catch (err) {
+
+        }
+        bicaraBawaanHp(teks);
+      }
+
+
+      function berbahasaIndonesia(teks) {
+        var rendah = " " + String(teks || "").toLowerCase() + " ";
+        var umum = [
+          " yang ",
+          " dan ",
+          " di ",
+          " ke ",
+          " dari ",
+          " untuk ",
+          " dengan ",
+          " ini ",
+          " itu ",
+          " ada ",
+          " apa ",
+          " saya ",
+          " aku ",
+          " kamu ",
+          " tolong ",
+          " coba ",
+          " lihat ",
+          " buka ",
+          " tutup ",
+          " cari ",
+          " ketik ",
+          " tekan ",
+          " tidak ",
+          " sudah ",
+          " belum ",
+          " bisa ",
+          " mau ",
+          " terima kasih ",
+          " halo ",
+          " hai ",
+          " selamat ",
+        ];
+        return umum.some(function (kata) {
+          return rendah.includes(kata);
+        });
+      }
+
+      function bicaraBawaanHp(teks) {
+        if (!audioMenyala) {
+          jadwalUlangHandsfree();
+          return;
+        }
+        try {
+          if (!window.speechSynthesis) {
+            jadwalUlangHandsfree();
+            return;
+          }
+          var ucap = new SpeechSynthesisUtterance(teks);
+          var daftar = window.speechSynthesis.getVoices() || [];
+          var suara = null;
+          var pakaiId = berbahasaIndonesia(teks);
+          if (pakaiId) {
+            suara =
+              daftar.find(function (v) {
+                return v.lang && v.lang.toLowerCase().startsWith("id");
+              }) ||
+              daftar.find(function (v) {
+                return /indonesia/i.test(v.name);
+              });
+          } else {
+            suara =
+              daftar.find(function (v) {
+                return v.lang === "en-US";
+              }) ||
+              daftar.find(function (v) {
+                return v.lang === "en-GB";
+              }) ||
+              daftar.find(function (v) {
+                return v.lang && v.lang.toLowerCase().startsWith("en");
+              });
+          }
+          if (suara) {
+            ucap.voice = suara;
+            ucap.lang = suara.lang;
+          } else {
+            ucap.lang = pakaiId ? "id-ID" : "en-US";
+          }
+          ucap.rate = 1.0;
+          ucap.onend = function () {
+            jadwalUlangHandsfree();
+          };
+          ucap.onerror = function () {
+            jadwalUlangHandsfree();
+          };
+          window.speechSynthesis.speak(ucap);
+        } catch (err) {
+          jadwalUlangHandsfree();
+        }
+      }
+
+
+      function kameraDidukungWebRTC() {
+        return !!(
+          navigator.mediaDevices && navigator.mediaDevices.getUserMedia
+        );
+      }
+
+      function tampilkanHintFlag() {
+        if (flagHint) flagHint.style.display = "block";
+      }
+
+      function tampilkanPesanNative() {
+        var el = document.getElementById("pesan-native");
+        if (el) el.style.display = "flex";
+      }
+
+      function tampilkanBannerStt() {
+        var banner = document.getElementById("banner-stt");
+        var originEl = document.getElementById("origin-hp");
+        if (originEl) originEl.textContent = window.location.origin;
+        if (banner) banner.style.display = "block";
+      }
+
+      (function pasangSalinOrigin() {
+        var kotak = document.getElementById("kotak-flag-origin");
+        if (!kotak) return;
+        kotak.addEventListener("click", function () {
+          var origin = window.location.origin;
+          function done(ok) {
+            setStatus(
+              ok
+                ? "Origin copied! Paste into chrome://flags, then Enabled + Relaunch."
+                : "Copy manually: " + origin,
+            );
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(origin).then(
+              function () {
+                done(true);
+              },
+              function () {
+                done(false);
+              },
+            );
+          } else {
+            done(false);
+          }
+        });
+      })();
+
+      function terapkanFacing() {
+        var depan = facing === "user";
+        video.classList.toggle("cermin", depan);
+        if (chipKamera)
+          chipKamera.textContent = depan ? "Front camera" : "Rear camera";
+        if (kameraHpNative) kameraHpNative.setAttribute("capture", facing);
+      }
+
+      async function gantiKamera() {
+        if (sedangGanti || btnScan.disabled) return;
+        sedangGanti = true;
+        btnFlip.disabled = true;
+        btnFlip.classList.toggle("putar");
+        var sebelumnya = facing;
+        facing = facing === "user" ? "environment" : "user";
+        terapkanFacing();
+        try {
+
+          if (fotoTerkunci) lepasFoto({ bersihkanDengar: true });
+          var namaBaru = facing === "user" ? "Front" : "Rear";
+          if (kameraDidukungWebRTC()) {
+            matikanKamera();
+            var ok = await bukaKamera();
+            if (!ok) {
+              facing = sebelumnya;
+              terapkanFacing();
+              await bukaKamera();
+              setStatus("Could not switch camera on this phone.");
+            } else {
+              setStatus(
+                namaBaru + " camera active. Frame your shot, then tap Scan.",
+              );
+            }
+          } else {
+            setStatus(namaBaru + " camera selected.");
+          }
+        } finally {
+          sedangGanti = false;
+          btnFlip.disabled = false;
+        }
+      }
+      btnFlip.addEventListener("click", gantiKamera);
+
+      async function bukaKamera() {
+        if (camMatiManual) return false;
+        if (video.srcObject) return true;
+        if (!kameraDidukungWebRTC()) return false;
+        try {
+          var stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: facing }, width: { ideal: 640 } },
+            audio: false,
+          });
+          video.srcObject = stream;
+          try {
+
+            var fm = stream.getVideoTracks()[0].getSettings().facingMode;
+            if (fm === "user" || fm === "environment") facing = fm;
+          } catch (e) {
+
+          }
+          terapkanFacing();
+          return true;
+        } catch (err) {
+          setStatus("Camera cannot be opened: " + (err.name || err.message));
+          return false;
+        }
+      }
+
+      function matikanKamera() {
+        try {
+          var s = video.srcObject;
+          if (s)
+            s.getTracks().forEach(function (t) {
+              t.stop();
+            });
+          video.srcObject = null;
+        } catch (err) {
+
+        }
+      }
+
+      function potretBase64() {
+        var c = document.createElement("canvas");
+        c.width = 640;
+        c.height =
+          Math.round((640 * video.videoHeight) / video.videoWidth) || 480;
+        c.getContext("2d").drawImage(video, 0, 0, c.width, c.height);
+        return c.toDataURL("image/jpeg", 0.7);
+      }
+
+      async function kirimJson(path, muatan) {
+        var res = await fetch(API_BASE + path, {
+          method: "POST",
+          headers: kepalaAuth(),
+          body: JSON.stringify(muatan),
+        });
+        var data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(
+            (data && (data.detail || data.text)) || "HTTP " + res.status,
+          );
+        }
+        return data.text || "";
+      }
+
+      async function tampilkanJawaban(teks) {
+        setStatus("Answer received. Playing audio on the phone...");
+        hasilEl.textContent = teks || "(empty response)";
+        hasilEl.style.display = "block";
+        jawabanTerakhirHp = teks || "";
+        waktuJawabanHp = Date.now();
+        await putarJawabanDiHp(teks || "");
+        setStatus("Done.");
+      }
+
+
+      async function kirimTeks() {
+
+        var dariSuaraHp = teksSuaraBerikutnyaHp;
+        teksSuaraBerikutnyaHp = false;
+        if (sedangKirim) return;
+        sedangKirim = true;
+        var fotoDipakai = fotoTerkunci;
+        var fileDipakai = fileTerlampir;
+        var teks = normalisasiNamaArvi((promptEl.value || "").trim());
+        if (!teks && fotoTerkunci) {
+          teks = "Briefly identify this object.";
+        }
+        if (!teks && !fileDipakai) {
+          setStatus("Type a command first, e.g.: pause spotify.");
+          sedangKirim = false;
+          return;
+        }
+
+        promptEl.value = "";
+        dengarTeks.textContent = teks;
+        hasilEl.style.display = "none";
+        try {
+          var jawaban;
+          if (fileDipakai) {
+            setStatus('Sending file "' + fileDipakai.nama + '"...');
+            jawaban = await kirimJson("/api/mobile-file", {
+              filename: fileDipakai.nama,
+              data_b64: fileDipakai.b64,
+              prompt: teks,
+              sumber: dariSuaraHp ? "suara" : "",
+              final: true,
+            });
+          } else if (fotoTerkunci) {
+            setStatus('Sending photo + text: "' + teks + '"...');
+            jawaban = await kirimJson("/api/mobile-scan", {
+              image: fotoTerkunci,
+              prompt: teks,
+              sumber: dariSuaraHp ? "suara" : "",
+              final: true,
+            });
+          } else {
+            setStatus('Sending command: "' + teks + '"...');
+            jawaban = await kirimJson("/api/mobile-command", {
+              text: teks,
+              sumber: dariSuaraHp ? "suara" : "",
+              final: true,
+            });
+          }
+          await tampilkanJawaban(jawaban);
+
+          if (fotoDipakai && fotoTerkunci === fotoDipakai) {
+            lepasFoto({
+              pesan: "Done. Camera ready for the next scan.",
+              bukaLagi: true,
+            });
+          }
+          if (fileDipakai && fileTerlampir === fileDipakai) {
+            lepasFile({ pesan: "Done. Ready for the next file." });
+          }
+        } catch (err) {
+          setStatus("Failed to send: " + err.message);
+          jadwalUlangHandsfree();
+
+          if (!promptEl.value) promptEl.value = teks;
+        }
+        sedangKirim = false;
+      }
+
+      if (btnSubmit) btnSubmit.addEventListener("click", kirimTeks);
+      promptEl.addEventListener("focus", function () {
+        promptEl.classList.remove("sorot");
+      });
+      promptEl.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          kirimTeks();
+        }
+      });
+
+      promptEl.addEventListener("change", function () {
+        if (sttDiblokir && (promptEl.value || "").trim()) kirimTeks();
+      });
+
+
+      async function kirimWalkie() {
+        var perintah = normalisasiNamaArvi(
+          (segmenFinal || "").trim() || promptEl.value,
+        );
+        if (!perintah.trim()) {
+          setStatus("No speech captured. Try again.");
+          jadwalUlangHandsfree();
+          return;
+        }
+
+        if (miripGemaHp(perintah)) {
+          dengarTeks.textContent = perintah;
+          setStatus("Ignored ARVI echo.");
+          jadwalUlangHandsfree();
+          return;
+        }
+
+        var putusanW = saringTranskripSuaraHp(perintah);
+        if (!putusanW) {
+          dengarTeks.textContent = perintah;
+          setStatus("Ignored: voice needs the Arvi prefix.");
+          jadwalUlangHandsfree();
+          return;
+        }
+        if (putusanW.takJelas) {
+          promptEl.value = "";
+          dengarTeks.textContent = perintah;
+          await tampilkanJawaban(PESAN_ULANGI_ARVI);
+          return;
+        }
+        if (fileTerlampir) {
+
+          promptEl.value = perintah;
+          dengarTeks.textContent = perintah;
+          if (handsFreeAktif) {
+            teksSuaraBerikutnyaHp = true;
+            kirimTeks();
+          } else {
+            setStatus("Instruction ready — tap Send to analyze the file.");
+          }
+          return;
+        }
+        promptEl.value = "";
+        dengarTeks.textContent = perintah;
+        setStatus('Sending command: "' + perintah + '"...');
+        hasilEl.style.display = "none";
+        try {
+          var jawaban = await kirimJson("/api/mobile-command", {
+            text: perintah,
+            sumber: "suara",
+            final: true,
+          });
+          await tampilkanJawaban(jawaban);
+        } catch (err) {
+          setStatus("Failed to send: " + err.message);
+          if (!promptEl.value) promptEl.value = perintah;
+          jadwalUlangHandsfree();
+        }
+      }
+
+
+      async function kirimFotoDanSuara() {
+        if (!fotoTerkunci) {
+          setStatus("No locked photo yet. Tap 📷 Scan first.");
+          return;
+        }
+        var fotoDipakai = fotoTerkunci;
+        var instruksi = normalisasiNamaArvi(
+          (segmenFinal || "").trim() || promptEl.value,
+        );
+
+
+        if (miripGemaHp(instruksi)) {
+          dengarTeks.textContent = instruksi;
+          setStatus("Ignored ARVI echo.");
+          jadwalUlangHandsfree();
+          return;
+        }
+
+        var putusanF = saringTranskripSuaraHp(instruksi);
+        if (!putusanF) {
+          dengarTeks.textContent = instruksi;
+          setStatus("Ignored: voice needs the Arvi prefix.");
+          return;
+        }
+        if (putusanF.takJelas) {
+          dengarTeks.textContent = instruksi;
+          await tampilkanJawaban(PESAN_ULANGI_ARVI);
+          return;
+        }
+        promptEl.value = "";
+        dengarTeks.textContent = instruksi;
+        setStatus('Sending photo + instruction: "' + instruksi + '"...');
+        hasilEl.style.display = "none";
+        try {
+          var jawaban = await kirimJson("/api/mobile-scan", {
+            image: fotoTerkunci,
+            prompt: instruksi,
+            sumber: "suara",
+            final: true,
+          });
+          await tampilkanJawaban(jawaban);
+
+          if (fotoDipakai && fotoTerkunci === fotoDipakai) {
+            lepasFoto({
+              pesan: "Done. Camera ready for the next scan.",
+              bukaLagi: true,
+            });
+          }
+        } catch (err) {
+          setStatus("Failed to send: " + err.message);
+          if (!promptEl.value) promptEl.value = instruksi;
+        }
+      }
+
+      function siapkanStt() {
+        if (!SR) {
+          setStatus(
+            "This phone does not support Speech Recognition. Type in the field, then use the buttons.",
+          );
+          return false;
+        }
+        stt = new SR();
+        stt.lang = "id-ID";
+        stt.continuous = false;
+        stt.interimResults = true;
+        stt.onresult = function (event) {
+          var interim = "";
+          for (var i = event.resultIndex; i < event.results.length; i++) {
+            var r = event.results[i];
+            if (r.isFinal) segmenFinal += r[0].transcript;
+            else interim += r[0].transcript;
+          }
+          dengarTeks.textContent =
+            normalisasiNamaArvi((segmenFinal + " " + interim).trim()) ||
+            "Listening...";
+        };
+        stt.onerror = function (event) {
+          if (event.error === "no-speech" || event.error === "aborted") {
+
+
+            if (handsFreeAktif) jadwalUlangHandsfree();
+            return;
+          }
+          if (
+            event.error === "not-allowed" ||
+            event.error === "service-not-allowed"
+          ) {
+            sttDiblokir = true;
+            try {
+              stt.abort();
+            } catch (e) {
+
+            }
+
+
+            promptEl.placeholder =
+              "Tap the 🎙 icon on your phone keyboard, then speak...";
+            promptEl.classList.add("sorot");
+            tampilkanBannerStt();
+            setStatus(
+              "Browser mic blocked (HTTP). Type below, dictate via the phone keyboard mic, or allow via chrome://flags.",
+            );
+            dengarTeks.textContent = "Mic blocked — type or use the keyboard mic.";
+            return;
+          }
+          setStatus("Phone STT: " + event.error);
+        };
+        stt.onend = function () {
+          lanjutkanKirimTertunda();
+        };
+        return true;
+      }
+
+      function lanjutkanKirimTertunda() {
+        if (pengamanKirim) {
+          clearTimeout(pengamanKirim);
+          pengamanKirim = null;
+        }
+        btnWalkie.classList.remove("merekam");
+        btnMicFoto.classList.remove("merekam");
+        var mode = kirimTertunda;
+        kirimTertunda = null;
+        if (mode === "walkie") kirimWalkie();
+        else if (mode === "foto") kirimFotoDanSuara();
+      }
+
+      function mulaiRekam(mode, tombol) {
+        hentikanAudioHp();
+        segmenFinal = "";
+        kirimTertunda = null;
+        dengarTeks.textContent = "Listening...";
+        hasilEl.style.display = "none";
+        if (tombol) tombol.classList.add("merekam");
+        if (sttDiblokir) {
+
+
+          tampilkanBannerStt();
+          dengarTeks.textContent = "Mic blocked — type or use the keyboard mic.";
+          setStatus(
+            "Mic blocked (HTTP). Type below, dictate via the keyboard mic, or allow via chrome://flags.",
+          );
+        } else if (stt) {
+          try {
+            stt.start();
+          } catch (err) {
+
+          }
+        }
+      }
+
+      function selesaiRekam(mode) {
+        kirimTertunda = mode;
+        if (stt && !sttDiblokir) {
+          try {
+            stt.stop();
+          } catch (err) {
+
+          }
+          pengamanKirim = setTimeout(function () {
+            pengamanKirim = null;
+            btnWalkie.classList.remove("merekam");
+            btnMicFoto.classList.remove("merekam");
+            if (kirimTertunda === mode) {
+              kirimTertunda = null;
+              if (mode === "walkie") kirimWalkie();
+              else kirimFotoDanSuara();
+            }
+          }, 1500);
+        } else {
+
+
+          kirimTertunda = null;
+          btnWalkie.classList.remove("merekam");
+          btnMicFoto.classList.remove("merekam");
+          if (sttDiblokir) tampilkanBannerStt();
+          if (mode === "walkie") kirimWalkie();
+          else kirimFotoDanSuara();
+        }
+      }
+
+      function pasangTahan(tombol, mode) {
+        var aktif = false;
+        var terakhirSentuh = 0;
+        var mulai = function (e) {
+          if (e && e.cancelable) e.preventDefault();
+          if (handsFreeAktif) return;
+          if (aktif) return;
+          aktif = true;
+
+          var el = document.activeElement;
+          if (el && el !== document.body && el.blur) el.blur();
+          try {
+            if (navigator.vibrate) navigator.vibrate(15);
+          } catch (err) {
+
+          }
+          mulaiRekam(mode, tombol);
+        };
+        var selesai = function (e) {
+          if (e && e.cancelable) e.preventDefault();
+          if (!aktif) return;
+          aktif = false;
+          selesaiRekam(mode);
+        };
+        tombol.addEventListener(
+          "touchstart",
+          function (e) {
+            terakhirSentuh = Date.now();
+            mulai(e);
+          },
+          { passive: false },
+        );
+        tombol.addEventListener(
+          "touchend",
+          function (e) {
+            terakhirSentuh = Date.now();
+            selesai(e);
+          },
+          { passive: false },
+        );
+        tombol.addEventListener("touchcancel", selesai, { passive: false });
+
+        tombol.addEventListener("mousedown", function (e) {
+          if (Date.now() - terakhirSentuh < 700) return;
+          mulai(e);
+        });
+        tombol.addEventListener("mouseup", function (e) {
+          if (Date.now() - terakhirSentuh < 700) return;
+          selesai(e);
+        });
+        tombol.addEventListener("mouseleave", function (e) {
+          if (Date.now() - terakhirSentuh < 700) return;
+          selesai(e);
+        });
+
+        tombol.addEventListener("contextmenu", function (e) {
+          e.preventDefault();
+        });
+        tombol.addEventListener("click", function (e) {
+          e.preventDefault();
+        });
+      }
+
+      pasangTahan(btnWalkie, "walkie");
+      pasangTahan(btnMicFoto, "foto");
+
+
+      var EKSTENSI_FILE_HP = [
+        "jpg",
+        "jpeg",
+        "png",
+        "webp",
+        "pdf",
+        "txt",
+        "md",
+        "csv",
+        "json",
+        "xml",
+        "yaml",
+        "yml",
+        "ini",
+        "py",
+        "js",
+        "ts",
+        "html",
+        "css",
+        "sh",
+        "ps1",
+        "bat",
+        "sql",
+        "log",
+      ];
+      var BATAS_BYTE_FILE_HP = 6 * 1024 * 1024;
+
+      function ekstensiFileDidukung(nama) {
+        var rendah = String(nama || "").toLowerCase();
+        if (rendah.endsWith(".env.example")) return true;
+        var titik = rendah.lastIndexOf(".");
+        if (titik < 0) return false;
+        return EKSTENSI_FILE_HP.indexOf(rendah.slice(titik + 1)) >= 0;
+      }
+
+      function lepasFile(opsi) {
+        opsi = opsi || {};
+        fileTerlampir = null;
+        if (inputFileHp) inputFileHp.value = "";
+        if (chipFile) chipFile.style.display = "none";
+        if (namaFileChip) namaFileChip.textContent = "";
+        if (opsi.pesan) setStatus(opsi.pesan);
+      }
+
+      if (btnAttach)
+        btnAttach.addEventListener("click", function () {
+          if (inputFileHp) inputFileHp.click();
+        });
+      if (btnLepasFile)
+        btnLepasFile.addEventListener("click", function () {
+          lepasFile({ pesan: "Attachment removed." });
+        });
+      if (inputFileHp) {
+        inputFileHp.addEventListener("change", function () {
+          var file = inputFileHp.files && inputFileHp.files[0];
+          inputFileHp.value = "";
+          if (!file) return;
+          if (!ekstensiFileDidukung(file.name)) {
+            setStatus("Format not supported: " + file.name);
+            return;
+          }
+          if (file.size > BATAS_BYTE_FILE_HP) {
+            setStatus("File too large (max 6 MB): " + file.name);
+            return;
+          }
+          setStatus("Reading " + file.name + "...");
+          var reader = new FileReader();
+          reader.onload = function () {
+            var url = String(reader.result || "");
+            var b64 = url.indexOf(",") >= 0 ? url.split(",", 2)[1] : "";
+            if (!b64) {
+              setStatus("Failed to read: " + file.name);
+              return;
+            }
+            fileTerlampir = { nama: file.name, b64: b64 };
+            namaFileChip.textContent = file.name;
+            chipFile.style.display = "flex";
+            dengarTeks.textContent =
+              "File ready. Type or speak an instruction, then Send...";
+            setStatus("Attached: " + file.name);
+          };
+          reader.onerror = function () {
+            setStatus("Failed to read: " + file.name);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+
+      function setAudio(nyala) {
+        audioMenyala = nyala;
+        if (btnAudio) {
+          btnAudio.textContent = nyala ? "🔊 Audio" : "🔇 Muted";
+          btnAudio.classList.toggle("mati", !nyala);
+        }
+        if (!nyala) hentikanAudioHp();
+        else setStatus("Audio ON.");
+      }
+      if (btnAudio)
+        btnAudio.addEventListener("click", function () {
+          setAudio(!audioMenyala);
+        });
+
+
+      var PESAN_NATIVE_ASLI = null;
+      function tampilkanPlaceholderCam(html) {
+        var el = document.getElementById("pesan-native");
+        if (!el) return;
+        if (PESAN_NATIVE_ASLI === null) PESAN_NATIVE_ASLI = el.innerHTML;
+        el.innerHTML = html;
+        el.style.display = "flex";
+      }
+      function sembunyikanPlaceholderCam() {
+        var el = document.getElementById("pesan-native");
+        if (!el) return;
+        if (PESAN_NATIVE_ASLI !== null) {
+          el.innerHTML = PESAN_NATIVE_ASLI;
+          PESAN_NATIVE_ASLI = null;
+        }
+        el.style.display = "none";
+      }
+      function setCam(nyala) {
+        camMatiManual = !nyala;
+        if (btnCam) {
+          btnCam.textContent = nyala ? "📷 Cam" : "🚫 Cam OFF";
+          btnCam.classList.toggle("mati", !nyala);
+        }
+        if (!nyala) {
+          matikanKamera();
+          btnFlip.disabled = true;
+          tampilkanPlaceholderCam(
+            "🚫 Camera is OFF.<br />Tap 📷 Cam to re-enable.",
+          );
+          setStatus("Camera OFF. Voice + files still work.");
+          return;
+        }
+        btnFlip.disabled = false;
+        sembunyikanPlaceholderCam();
+        if (fotoTerkunci) {
+          setStatus("Camera ON.");
+        } else if (kameraDidukungWebRTC()) {
+          bukaKamera().then(function (ok) {
+            if (ok) {
+              setStatus("Camera ON. Walkie-Talkie or Scan Object?");
+            } else {
+              tampilkanHintFlag();
+              setStatus("Camera failed — tap 📷 Scan for the phone camera.");
+            }
+          });
+        } else {
+          tampilkanPesanNative();
+          setStatus("Native camera mode: tap 📷 Scan.");
+        }
+      }
+      if (btnCam)
+        btnCam.addEventListener("click", function () {
+          setCam(camMatiManual);
+        });
+
+
+      function jadwalUlangHandsfree() {
+        if (timerUlangHF) {
+          clearTimeout(timerUlangHF);
+          timerUlangHF = null;
+        }
+        if (!handsFreeAktif || sttDiblokir || !stt) return;
+
+
+        timerUlangHF = setTimeout(function () {
+          timerUlangHF = null;
+          if (handsFreeAktif) mulaiDengarHF();
+        }, 0);
+      }
+
+      function mulaiDengarHF() {
+        if (!handsFreeAktif || sttDiblokir || !stt) return;
+        if (!TOKEN_HP) {
+          setStatus("Phone token missing — open this page from the HUD QR.");
+          return;
+        }
+        hentikanAudioHp();
+        segmenFinal = "";
+        kirimTertunda = "walkie";
+        dengarTeks.textContent = "Listening (hands-free)...";
+        hasilEl.style.display = "none";
+        btnWalkie.classList.add("merekam");
+        setStatus("Hands-free listening...");
+        try {
+          stt.start();
+        } catch (err) {
+
+        }
+      }
+
+      async function kunciLayarNyala() {
+        try {
+          if (navigator.wakeLock && navigator.wakeLock.request) {
+            try {
+              if (kunciLayar) await kunciLayar.release();
+            } catch (e) {
+
+            }
+            kunciLayar = await navigator.wakeLock.request("screen");
+          }
+        } catch (err) {
+          kunciLayar = null;
+        }
+      }
+
+      async function kunciLayarMati() {
+        try {
+          if (kunciLayar) await kunciLayar.release();
+        } catch (err) {
+
+        }
+        kunciLayar = null;
+      }
+
+      document.addEventListener("visibilitychange", function () {
+        if (!handsFreeAktif) return;
+        if (document.visibilityState === "hidden") {
+
+          setStatus("Tab in background — the browser pauses the mic.");
+          dengarTeks.textContent = "Mic paused (tab in background)...";
+          return;
+        }
+        kunciLayarNyala();
+        if (!sttDiblokir && stt) {
+          setStatus("Back visible — hands-free listening...");
+          jadwalUlangHandsfree();
+        }
+      });
+
+      function setHandsfree(aktif) {
+        handsFreeAktif = aktif;
+        if (btnHandsfree) {
+          btnHandsfree.textContent = aktif
+            ? "👐 Hands-Free: ON"
+            : "👐 Hands-Free: OFF";
+          btnHandsfree.classList.toggle("aktif", aktif);
+        }
+        if (!aktif) {
+          if (timerUlangHF) {
+            clearTimeout(timerUlangHF);
+            timerUlangHF = null;
+          }
+          kunciLayarMati();
+          kirimTertunda = null;
+          try {
+            if (stt) stt.abort();
+          } catch (err) {
+
+          }
+          btnWalkie.classList.remove("merekam");
+          setStatus("Hands-free OFF. Hold the orb to talk.");
+          return;
+        }
+        if (!TOKEN_HP) {
+          setStatus("Phone token missing — open this page from the HUD QR.");
+        } else if (sttDiblokir) {
+          tampilkanBannerStt();
+          setStatus("Hands-free needs mic permission (see banner).");
+        } else if (stt) {
+          setStatus("Hands-free ON. Start every command with Arvi...");
+          kunciLayarNyala();
+          mulaiDengarHF();
+        } else {
+          setStatus(
+            "This phone does not support Speech Recognition. Type instead.",
+          );
+        }
+      }
+      if (btnHandsfree)
+        btnHandsfree.addEventListener("click", function () {
+          setHandsfree(!handsFreeAktif);
+        });
+
+
+      function tungguVideoSiap(batasMs) {
+        return new Promise(function (res) {
+          var mulai = Date.now();
+          (function cek() {
+            if (video.videoWidth > 0 && video.readyState >= 2) return res(true);
+            if (Date.now() - mulai > batasMs) return res(false);
+            setTimeout(cek, 60);
+          })();
+        });
+      }
+
+      function sembunyikanGambarBeku() {
+        bekuImg.removeAttribute("src");
+        bekuImg.style.display = "none";
+        bekuImg.classList.remove("cermin");
+      }
+
+      function kunciFoto(dataUrl, cermin, pesan) {
+        fotoTerkunci = dataUrl;
+        bekuImg.src = dataUrl;
+        bekuImg.classList.toggle("cermin", !!cermin);
+        bekuImg.style.display = "block";
+        matikanKamera();
+        btnMicFoto.style.display = "block";
+        badgeFoto.style.display = "block";
+        btnScan.textContent = "↺ Retake";
+        btnScan.disabled = false;
+        setStatus(pesan);
+        dengarTeks.textContent =
+          "Photo ready. Hold the purple mic, or type then Send...";
+      }
+
+
+      function lepasFoto(opsi) {
+        opsi = opsi || {};
+        fotoTerkunci = null;
+        btnMicFoto.style.display = "none";
+        badgeFoto.style.display = "none";
+        btnScan.textContent = "📷 Scan";
+        btnScan.disabled = false;
+        if (opsi.bersihkanDengar) {
+          dengarTeks.textContent =
+            "Camera ready. Walkie-Talkie or Scan Object...";
+        }
+        if (opsi.bukaLagi && kameraDidukungWebRTC()) {
+
+          bukaKamera()
+            .then(function (ok) {
+              return ok
+                ? tungguVideoSiap(1500).then(function () {
+                    return true;
+                  })
+                : false;
+            })
+            .then(function (ok) {
+              if (!fotoTerkunci) sembunyikanGambarBeku();
+              if (ok) {
+                if (opsi.pesan) setStatus(opsi.pesan);
+              } else {
+                tampilkanHintFlag();
+                tampilkanPesanNative();
+              }
+            });
+          return;
+        }
+        sembunyikanGambarBeku();
+        if (opsi.pesan) setStatus(opsi.pesan);
+      }
+
+
+      function kunciFotoNative(file) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          var img = new Image();
+          img.onload = function () {
+            var skala = Math.min(1, 640 / (img.naturalWidth || 640));
+            var c = document.createElement("canvas");
+            c.width = Math.max(
+              1,
+              Math.round((img.naturalWidth || 640) * skala),
+            );
+            c.height = Math.max(
+              1,
+              Math.round((img.naturalHeight || 600) * skala),
+            );
+            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+            kunciFoto(
+              c.toDataURL("image/jpeg", 0.75),
+              false,
+              "Photo locked (phone camera). HOLD the purple mic / type + Send.",
+            );
+          };
+          img.onerror = function () {
+            setStatus("Failed to read the photo from the phone camera.");
+            btnScan.disabled = false;
+          };
+          img.src = reader.result;
+        };
+        reader.onerror = function () {
+          setStatus("Failed to read the photo file.");
+          btnScan.disabled = false;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      if (kameraHpNative) {
+        kameraHpNative.addEventListener("change", function () {
+          var file = kameraHpNative.files && kameraHpNative.files[0];
+          kameraHpNative.value = "";
+          if (!file) {
+            setStatus("Capture cancelled.");
+            btnScan.disabled = false;
+            return;
+          }
+          setStatus("Processing the photo from the phone camera...");
+          kunciFotoNative(file);
+        });
+      }
+
+
+      btnScan.addEventListener("click", function () {
+        if (btnScan.disabled || sedangGanti) return;
+        if (camMatiManual) {
+          setStatus("Camera is OFF — tap 📷 Cam to enable it.");
+          return;
+        }
+
+        if (fotoTerkunci) {
+          var native = !kameraDidukungWebRTC();
+          lepasFoto({
+            pesan: native
+              ? "Opening the real phone camera..."
+              : "Camera live. Frame your shot, then tap Scan.",
+            bersihkanDengar: true,
+            bukaLagi: true,
+          });
+          if (native) kameraHpNative.click();
+          return;
+        }
+
+        if (!kameraDidukungWebRTC()) {
+
+          setStatus("Opening the real phone camera...");
+          kameraHpNative.click();
+          return;
+        }
+        btnScan.disabled = true;
+        setStatus("Focus... hold the phone steady.");
+        hitungEl.style.display = "flex";
+        hitungEl.textContent = "1";
+        setTimeout(async function () {
+          hitungEl.style.display = "none";
+          var ok = await bukaKamera();
+          if (ok) ok = await tungguVideoSiap(2500);
+          if (!ok) {
+
+            btnScan.disabled = false;
+            setStatus("WebRTC failed — opening the real phone camera...");
+            tampilkanHintFlag();
+            tampilkanPesanNative();
+            kameraHpNative.click();
+            return;
+          }
+          kunciFoto(
+            potretBase64(),
+            facing === "user",
+            "Photo locked. HOLD the purple mic button / type + Send.",
+          );
+        }, 1000);
+      });
+
+      window.addEventListener("pagehide", function () {
+        hentikanAudioHp();
+        matikanKamera();
+        try {
+          if (stt) stt.abort();
+        } catch (err) {
+
+        }
+      });
+
+      if (flagHint) {
+        flagHint.addEventListener("click", function () {
+          var url = "chrome://flags/#unsafely-treat-insecure-origin-as-secure";
+          function done(ok) {
+            setStatus(
+              ok
+                ? "Copied! Paste into the phone Chrome address bar for live video."
+                : "Copy manually: " + url,
+            );
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(
+              function () {
+                done(true);
+              },
+              function () {
+                done(false);
+              },
+            );
+          } else {
+            done(false);
+          }
+        });
+      }
+
+
+      (function pasangLapisanVisual() {
+        var body = document.body;
+        var asli = setStatus;
+        var timerGalat = null;
+        setStatus = function (teks) {
+          asli(teks);
+          var t = String(teks || "");
+          var s = "";
+          if (/^(Sending|Focus|Processing|Opening)/i.test(t)) s = "berpikir";
+          else if (/^Answer received/i.test(t)) s = "bicara";
+          else if (
+            /(fail|cannot|could not|blocked|missing|no speech|no locked|type a command|cancel)/i.test(
+              t,
+            )
+          )
+            s = "galat";
+          body.setAttribute("data-state", s);
+          if (timerGalat) {
+            clearTimeout(timerGalat);
+            timerGalat = null;
+          }
+          if (s === "galat") {
+            timerGalat = setTimeout(function () {
+              if (body.getAttribute("data-state") === "galat")
+                body.setAttribute("data-state", "");
+            }, 4500);
+          }
+        };
+        var obsRekam = new MutationObserver(function () {
+          body.classList.toggle(
+            "merekam-aktif",
+            btnWalkie.classList.contains("merekam") ||
+              btnMicFoto.classList.contains("merekam"),
+          );
+        });
+        [btnWalkie, btnMicFoto].forEach(function (b) {
+          obsRekam.observe(b, { attributes: true, attributeFilter: ["class"] });
+        });
+        var obsFoto = new MutationObserver(function () {
+          body.classList.toggle("foto", bekuImg.style.display === "block");
+        });
+        obsFoto.observe(bekuImg, {
+          attributes: true,
+          attributeFilter: ["style"],
+        });
+        var chipLink = document.getElementById("chip-link");
+        function perbaruiLink() {
+          var on = navigator.onLine !== false;
+          chipLink.textContent = on ? "ONLINE" : "OFFLINE";
+          chipLink.classList.toggle("mati", !on);
+        }
+        window.addEventListener("online", perbaruiLink);
+        window.addEventListener("offline", perbaruiLink);
+        perbaruiLink();
+      })();
+
+      terapkanFacing();
+      siapkanStt();
+      if (!TOKEN_HP) {
+        setStatus("Phone token missing — open this page from the HUD QR.");
+      } else if (kameraDidukungWebRTC()) {
+        bukaKamera().then(function (ok) {
+          if (ok) {
+            setStatus("Ready. Walkie-Talkie or Scan Object?");
+          } else {
+            tampilkanHintFlag();
+            setStatus("WebRTC failed — tap 📷 to shoot via the phone camera.");
+          }
+        });
+      } else {
+        tampilkanHintFlag();
+        tampilkanPesanNative();
+        setStatus("Native camera mode: tap 📷 Scan.");
+      }
+</script>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+# ARVI OS — runtime dependencies (Windows, Python 3.10+)
+# Install:  pip install -r requirements.txt
+fastapi
+uvicorn
+pydantic
+python-dotenv
+websockets
+requests
+psutil
+pillow
+pyautogui
+pyperclip
+keyboard
+
+# Optional (premium voice, QR decode, phone PDF reading):
+# elevenlabs
+# opencv-python
+# pypdf

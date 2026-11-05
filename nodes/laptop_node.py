@@ -4,23 +4,35 @@ import subprocess
 import psutil
 import websockets
 import time
+from pathlib import Path
 
 SERVER_WS_URL = "ws://127.0.0.1:8080/ws/node"
+PSK_PATH = Path(__file__).resolve().parent.parent / "security" / "arvi_node.json"
+
+
+def muat_psk():
+
+    try:
+        data = json.loads(PSK_PATH.read_text(encoding="utf-8"))
+        psk = (data.get("psk") or "").strip()
+        return psk or None
+    except (OSError, ValueError):
+        return None
 
 
 def get_top_cpu_processes(limit=5):
-    """Mengambil proses terberat dengan sampling interval Windows."""
-    # Sampling pertama untuk inisialisasi timer psutil
+
+
     procs = []
     for p in psutil.process_iter(['pid', 'name']):
         try:
             p.cpu_percent()
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
-            
-    time.sleep(0.3)  # Jeda sampling
 
-    # Sampling kedua untuk mendapatkan angka beban riil
+    time.sleep(0.3)
+
+
     for p in psutil.process_iter(['pid', 'name']):
         try:
             cpu = p.cpu_percent()
@@ -34,7 +46,7 @@ def get_top_cpu_processes(limit=5):
     return "\n".join(lines)
 
 def run_ping_test(host="8.8.8.8"):
-    """Menjalankan uji ping cepat ke jaringan luar."""
+
     try:
         res = subprocess.run(["ping", "-n", "2", host], capture_output=True, text=True, timeout=5)
         for line in res.stdout.splitlines():
@@ -45,7 +57,7 @@ def run_ping_test(host="8.8.8.8"):
         return f"Ping gagal: {str(e)}"
 
 async def report_telemetry(ws):
-    """Mengirim telemetri berkala ke server."""
+
     while True:
         try:
             cpu_usage = psutil.cpu_percent(interval=1)
@@ -64,12 +76,12 @@ async def report_telemetry(ws):
             break
 
 async def listen_commands(ws):
-    """Mendengarkan instruksi aksi dari ARVI Core."""
+
     while True:
         try:
             raw_msg = await ws.recv()
             data = json.loads(raw_msg)
-            action = data.get("action")
+            action = data.get("action") or data.get("type")
 
             if action == "INSPECT_CPU":
                 print("[*] Menjalankan inspeksi proses CPU...")
@@ -97,8 +109,19 @@ async def run_node():
     print("[*] Menghubungkan Edge Node LAPTOP_01 ke ARVI Core...")
     while True:
         try:
+            psk = muat_psk()
+            if not psk:
+                print("[-] PSK node belum ada (jalankan server dulu). Coba lagi dalam 5 detik...")
+                await asyncio.sleep(5)
+                continue
             async with websockets.connect(SERVER_WS_URL) as ws:
-                print("[+] Terhubung ke ARVI Core WebSocket!")
+                await ws.send(json.dumps({"type": "auth", "token": psk}))
+                balasan = json.loads(await asyncio.wait_for(ws.recv(), timeout=10))
+                if balasan.get("type") != "auth_ok":
+                    print("[-] Auth node ditolak server. Cek security/arvi_node.json.")
+                    await asyncio.sleep(5)
+                    continue
+                print("[+] Terhubung ke ARVI Core WebSocket (terautentikasi)!")
                 await asyncio.gather(
                     report_telemetry(ws),
                     listen_commands(ws)

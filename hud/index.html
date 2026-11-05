@@ -3,611 +3,910 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ARVI // Tactical Operating Layer</title>
+    <title>ARVI</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap");
+    <style>      @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&display=swap");
 
-      * {
+      body {
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        background-color: #e4e6ea;
+        color: #3a3f47;
+      }
+
+      .mono {
         font-family: "JetBrains Mono", monospace;
       }
 
-      body {
-        background-color: #05070c;
-        color: #94a3b8;
+
+      .zen-card {
+        background: rgba(255, 255, 255, 0.78);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(60, 64, 72, 0.08);
+        box-shadow: 0 8px 28px rgba(60, 64, 72, 0.08);
       }
 
-      .hud-border {
-        border: 1px solid rgba(14, 165, 233, 0.25);
-        background: rgba(8, 14, 26, 0.65);
-        backdrop-filter: blur(8px);
+      .zen-input {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(60, 64, 72, 0.12);
+        color: #2b2f36;
+      }
+      .zen-input:focus {
+        outline: none;
+        border-color: #7d8ca3;
+        box-shadow: 0 0 0 3px rgba(125, 140, 163, 0.15);
       }
 
-      .hud-glow {
-        box-shadow: 0 0 20px rgba(14, 165, 233, 0.15);
+
+      #baymax-head {
+        width: 224px;
+        height: 164px;
+        flex-shrink: 0;
+        background: #ffffff;
+        border-radius: 50% / 55%;
+        box-shadow:
+          0 10px 30px rgba(60, 64, 72, 0.14),
+          inset 0 -6px 18px rgba(60, 64, 72, 0.06);
+        position: relative;
+        transition: transform 0.5s ease;
+        animation: baymax-idle 4s ease-in-out infinite;
+      }
+      #baymax-head .eye {
+        position: absolute;
+        top: 44%;
+        width: 21px;
+        height: 28px;
+        background: #2b2f36;
+        border-radius: 50%;
+
+        animation: baymax-blink 5.2s ease-in-out infinite;
+      }
+      #baymax-head .eye.left {
+        left: 26%;
+      }
+      #baymax-head .eye.right {
+        right: 26%;
+      }
+      #baymax-head .eye-line {
+        position: absolute;
+        top: calc(44% + 13px);
+        left: 26%;
+        right: 26%;
+        height: 4px;
+        background: #2b2f36;
+        opacity: 0.85;
       }
 
-      .scanline {
-        background: linear-gradient(
-          to bottom,
-          rgba(255, 255, 255, 0),
-          rgba(255, 255, 255, 0) 50%,
-          rgba(14, 165, 233, 0.04) 50%,
-          rgba(14, 165, 233, 0.04)
-        );
-        background-size: 100% 4px;
+      @keyframes baymax-idle {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.035);
+        }
+      }
+
+
+      #baymax-head.speaking {
+        animation: baymax-speak 1.1s ease-in-out infinite;
+      }
+      @keyframes baymax-speak {
+        0%,
+        100% {
+          transform: scale(1.06);
+        }
+        50% {
+          transform: scale(1.11);
+        }
+      }
+
+
+      #baymax-head.listening {
+        animation: baymax-listen 1.6s ease-in-out infinite;
+      }
+      #baymax-head.listening .eye {
+        animation: baymax-blink 1.6s ease-in-out infinite;
+      }
+      @keyframes baymax-listen {
+        0%,
+        100% {
+          transform: scale(1.04);
+        }
+        50% {
+          transform: scale(1.08);
+        }
+      }
+      @keyframes baymax-blink {
+        0%,
+        92%,
+        100% {
+          transform: scaleY(1);
+        }
+        95% {
+          transform: scaleY(0.15);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #baymax-head,
+        #baymax-head .eye,
+        #baymax-head.speaking,
+        #baymax-head.listening {
+          animation: none;
+        }
+      }
+
+
+      .drawer {
+        transition: transform 0.35s ease, opacity 0.35s ease;
+      }
+      #panel-vision {
+        transform: translateX(-105%);
+        opacity: 0;
+        pointer-events: none;
+      }
+      #panel-vision.open {
+        transform: translateX(0);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #panel-workspace {
+        transform: translateX(105%);
+        opacity: 0;
+        pointer-events: none;
+      }
+      #panel-workspace.open {
+        transform: translateX(0);
+        opacity: 1;
+        pointer-events: auto;
       }
 
       ::-webkit-scrollbar {
-        width: 4px;
+        width: 5px;
       }
       ::-webkit-scrollbar-track {
-        background: #090d16;
+        background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #0284c7;
-        border-radius: 2px;
+        background: #b6bdc7;
+        border-radius: 3px;
       }
-    </style>
+
+
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(30, 34, 40, 0.55);
+      }
+      .modal-overlay.open {
+        display: flex;
+      }
+      .modal-card {
+        background: #f4f5f7;
+        border: 1px solid rgba(60, 64, 72, 0.12);
+        box-shadow: 0 24px 60px rgba(20, 24, 30, 0.35);
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        max-height: 92vh;
+      }
+      .modal-scroll {
+        overflow-y: auto;
+        min-height: 0;
+      }
+      .cyber-pre {
+        background: #1e2430;
+        color: #c9d4e3;
+        border-radius: 8px;
+        padding: 0.6rem 0.75rem;
+        font-size: 11px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .cyber-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+      .cyber-table th {
+        text-align: left;
+        padding: 0.35rem 0.5rem;
+        color: #8a94a6;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(60, 64, 72, 0.15);
+      }
+      .cyber-table td {
+        padding: 0.35rem 0.5rem;
+        border-bottom: 1px solid rgba(60, 64, 72, 0.07);
+        color: #3a3f47;
+        vertical-align: top;
+      }
+      .cyber-tag {
+        display: inline-block;
+        padding: 0 0.35rem;
+        margin: 0 0.15rem 0.15rem 0;
+        border-radius: 4px;
+        background: #fde8e8;
+        color: #b4232a;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .stat-chip {
+        background: #ffffff;
+        border: 1px solid rgba(60, 64, 72, 0.1);
+        border-radius: 8px;
+        padding: 0.45rem 0.65rem;
+        min-width: 0;
+      }
+      .stat-chip .stat-val {
+        font-size: 17px;
+        font-weight: 700;
+        color: #2b2f36;
+      }
+      .stat-chip .stat-label {
+        font-size: 10px;
+        color: #8a94a6;
+      }
+
+
+      .news-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
+        gap: 0.9rem;
+      }
+      .news-card {
+        background: #ffffff;
+        border: 1px solid rgba(60, 64, 72, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+      }
+      .news-card:hover {
+        box-shadow: 0 10px 26px rgba(60, 64, 72, 0.16);
+        transform: translateY(-2px);
+      }
+      .news-card img {
+        width: 100%;
+        height: 128px;
+        object-fit: cover;
+        background: #dde1e7;
+        display: block;
+      }
+      .news-ph {
+        width: 100%;
+        height: 128px;
+        background: #dde1e7;
+        color: #7d8ca3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+
+      #toast-wrap {
+        position: fixed;
+        right: 1rem;
+        bottom: 1rem;
+        z-index: 70;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-width: min(320px, 80vw);
+      }
+      .toast {
+        background: #2b2f36;
+        color: #eef1f5;
+        border-radius: 8px;
+        padding: 0.55rem 0.8rem;
+        font-size: 12px;
+        box-shadow: 0 8px 24px rgba(20, 24, 30, 0.3);
+        animation: toast-in 0.25s ease;
+      }
+      @keyframes toast-in {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+
+      #workspace-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        width: 10px;
+        height: 10px;
+        border-radius: 9999px;
+        background: #e0245e;
+        box-shadow: 0 0 0 2px #e4e6ea;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .toast {
+          animation: none;
+        }
+        .news-card {
+          transition: none;
+        }
+        .news-card:hover {
+          transform: none;
+        }
+      }
+</style>
   </head>
-  <body
-    class="h-screen w-screen p-4 flex flex-col gap-4 scanline select-none overflow-hidden"
-  >
-    <!-- TOP STATUS BAR -->
-    <header
-      class="hud-border p-3 rounded-lg flex items-center justify-between hud-glow flex-shrink-0"
+  <body class="h-screen w-screen flex flex-col overflow-hidden select-none">
+    
+    <div
+      id="lockscreen"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style="background: #e4e6ea"
     >
-      <div class="flex items-center gap-3">
-        <div class="w-3 h-3 rounded-full bg-cyan-400 animate-ping"></div>
-        <div>
-          <h1
-            class="text-white text-base font-bold tracking-widest flex items-center gap-2"
-          >
+      <div class="zen-card rounded-2xl p-6 w-full max-w-sm flex flex-col gap-4">
+        <div class="text-center pb-2 border-b border-slate-200">
+          <h2 class="text-lg font-semibold text-slate-700 tracking-wide">
             ARVI
-            <span
-              class="text-xs px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800"
-            >
-              OS v0.1.0-GENESIS
-            </span>
-          </h1>
-          <p class="text-[10px] text-slate-400">
-            COGNITIVE ENGINE: META MUSE SPARK 1.3 // SPATIAL: SAM 3.1
+          </h2>
+          <p class="text-[11px] text-slate-500 mono">
+            USERNAME + PASSWORD
           </p>
+          <span
+            id="lockscreen-status"
+            class="inline-block mt-2 text-[10px] px-2 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-500 font-bold mono"
+            >STANDBY</span
+          >
+        </div>
+
+        <div id="view-login" class="flex flex-col gap-2">
+          <label
+            class="text-[11px] text-slate-500"
+            for="login-username"
+            >Username</label
+          >
+          <input
+            id="login-username"
+            type="text"
+            maxlength="40"
+            autocomplete="username"
+            placeholder="username..."
+            class="zen-input rounded-lg px-3 py-2 text-sm mono"
+          />
+          <label
+            class="text-[11px] text-slate-500"
+            for="login-password"
+            >Password</label
+          >
+          <input
+            id="login-password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="password..."
+            class="zen-input rounded-lg px-3 py-2 text-sm mono"
+          />
+          <button
+            id="btn-login"
+            type="button"
+            class="w-full py-2 mt-1 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded-lg transition"
+          >
+            Sign In
+          </button>
+        </div>
+
+        <div id="view-setup" class="flex-col gap-2" style="display: none">
+          <div class="text-[11px] text-slate-500">
+            Initial Owner Setup
+          </div>
+          <input
+            id="setup-username"
+            type="text"
+            maxlength="40"
+            autocomplete="username"
+            placeholder="new username..."
+            class="zen-input rounded-lg px-3 py-2 text-sm mono"
+          />
+          <input
+            id="setup-password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="password (min. 8 chars)..."
+            class="zen-input rounded-lg px-3 py-2 text-sm mono"
+          />
+          <input
+            id="setup-password2"
+            type="password"
+            autocomplete="new-password"
+            placeholder="repeat password..."
+            class="zen-input rounded-lg px-3 py-2 text-sm mono"
+          />
+          <button
+            id="btn-setup-password"
+            type="button"
+            class="w-full py-2 mt-1 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded-lg transition"
+          >
+            Create Account
+          </button>
+        </div>
+
+        <div id="lockscreen-msg" class="text-xs text-slate-500 min-h-8 text-center">
+          Contacting ARVI Core...
+        </div>
+
+        <div
+          class="flex items-center justify-between border-t border-slate-200 pt-3"
+        >
+          <span class="text-[11px] text-slate-500"
+            >Operator:
+            <span id="lockscreen-operator" class="text-slate-700 font-semibold"
+              >—</span
+            ></span
+          >
+          <button
+            id="btn-lock-refresh"
+            type="button"
+            class="px-2.5 py-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[11px] rounded-lg transition"
+          >
+            Refresh Status
+          </button>
         </div>
       </div>
+    </div>
 
-      <div class="flex items-center gap-6 text-xs">
-        <div class="flex flex-col items-end">
-          <span class="text-slate-400 text-[10px]">WEBSOCKET HUB</span>
+    
+    <header
+      class="zen-card mx-3 mt-3 px-4 py-2 rounded-xl flex items-center justify-between flex-shrink-0"
+    >
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <h1 class="text-sm font-semibold text-slate-700 tracking-wide">
+          ARVI
+        </h1>
+        <span class="text-[10px] text-slate-400 mono hidden sm:inline"
+          >OS v0.1.0-GENESIS</span
+        >
+      </div>
+
+      <div class="flex items-center gap-3 text-xs">
+        <button
+          id="btn-lock"
+          type="button"
+          title="Lock HUD and end session (Login Gate)"
+          class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 text-[11px] rounded-lg transition"
+        >
+          Lock
+        </button>
+
+        <button
+          id="btn-toggle-voice"
+          type="button"
+          class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 text-[11px] rounded-lg transition flex items-center gap-1.5"
+        >
           <span
-            id="ws-status"
-            class="text-amber-400 font-bold flex items-center gap-1.5"
+            class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"
+            id="voice-dot"
+          ></span>
+          <span id="voice-label" class="mono">AUDIO: ON</span>
+        </button>
+
+        <button
+          id="btn-header-qr"
+          type="button"
+          title="Show the Mobile Lens QR code for your phone"
+          class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 text-[11px] rounded-lg transition flex items-center gap-1"
+        >
+          <span>📱</span>
+          <span class="mono">MOBILE QR</span>
+        </button>
+
+        <span id="ws-status" class="text-slate-500 mono text-[11px] hidden md:inline">
+          STANDBY // LOCAL ONLY
+        </span>
+        <span class="text-slate-400 text-[11px] hidden lg:inline">
+          Node:
+          <span id="active-nodes-count" class="text-slate-500 font-semibold mono"
+            >STANDBY // LOCKED</span
           >
-            <span
-              class="w-2 h-2 rounded-full bg-amber-400 inline-block animate-pulse"
-            ></span>
-            STANDBY // LOCAL ONLY
-          </span>
-        </div>
-        <div class="flex flex-col items-end">
-          <span class="text-slate-400 text-[10px]">META CREDIT QUOTA</span>
-          <span class="text-emerald-400 font-bold">$149.99 REMAINING</span>
-        </div>
-        <div class="flex flex-col items-end">
-          <span class="text-slate-400 text-[10px]">ACTIVE NODES</span>
-          <span id="active-nodes-count" class="text-cyan-400 font-bold"
-            >1 ONLINE (LAPTOP)</span
-          >
-        </div>
+        </span>
       </div>
     </header>
 
-    <!-- MAIN HUD GRID -->
-    <main class="grid grid-cols-12 gap-4 flex-1 min-h-0 overflow-hidden">
-      <!-- LEFT PANEL: SPATIAL CORTEX / SAM 3.1 -->
-      <section
-        class="col-span-3 hud-border rounded-lg p-3 flex flex-col gap-3 min-h-0 h-full overflow-hidden"
+    
+    <div
+      id="mobile-qr-box"
+      class="fixed top-16 right-3 z-50 w-72 zen-card rounded-2xl p-4 flex-col items-center gap-2.5 text-center shadow-xl"
+      style="display: none"
+    >
+      <div class="text-[11px] text-slate-500">
+        Scan with your phone camera to open ARVI Mobile Lens
+      </div>
+      <div
+        id="mobile-qr-code"
+        class="bg-white p-2 rounded-xl border border-slate-100 flex items-center justify-center min-h-[180px] min-w-[180px]"
+      ></div>
+      <div
+        id="mobile-qr-url"
+        class="text-[10px] text-slate-500 mono break-all select-all"
+      ></div>
+      <button
+        id="btn-close-qr"
+        type="button"
+        class="px-2 py-0.5 text-[11px] text-slate-500 hover:text-slate-700 bg-slate-50 border border-slate-200 rounded-lg transition"
       >
+        Close
+      </button>
+    </div>
+
+    
+    <main class="flex-1 min-h-0 flex flex-col items-center justify-center gap-5 px-4 py-6 overflow-hidden">
+      
+      <div id="baymax-head" aria-label="ARVI">
+        <span class="eye left"></span>
+        <span class="eye-line"></span>
+        <span class="eye right"></span>
+      </div>
+
+      <div class="text-center flex-shrink-0">
         <div
-          class="flex justify-between items-center border-b border-cyan-950 pb-2 flex-shrink-0"
+          class="text-xs font-semibold text-slate-600 tracking-widest"
+          id="core-state"
         >
-          <h2 class="text-xs font-bold text-cyan-400 tracking-wider">
-            ENV_CAM // SAM 3.1 SPATIAL
-          </h2>
-          <span
-            class="text-[10px] px-1.5 py-0.5 bg-slate-900 border border-slate-700 text-slate-300 rounded"
-            >OPTICAL 01</span
-          >
+          ARVI STANDBY
         </div>
+      </div>
 
-        <div
-          class="relative flex-1 min-h-0 bg-black/80 rounded border border-slate-800 overflow-hidden flex items-center justify-center"
-        >
-          <video
-            id="webcam-feed"
-            autoplay
-            playsinline
-            muted
-            class="absolute inset-0 w-full h-full object-cover filter brightness-90 contrast-110"
-          ></video>
-          <canvas
-            id="spatial-canvas"
-            class="absolute inset-0 w-full h-full pointer-events-none z-10"
-          ></canvas>
-
-          <div
-            class="absolute top-2 left-2 text-[10px] text-cyan-400 bg-black/80 px-1.5 py-0.5 rounded border border-cyan-900 z-20 flex items-center gap-1.5"
+      
+      <div
+        id="dialogue-box"
+        class="zen-card rounded-xl p-3 w-full max-w-2xl h-44 flex-shrink-0 overflow-y-auto space-y-2 text-sm"
+      >
+        <div class="p-2 bg-slate-100/70 rounded-lg text-slate-600">
+          <span class="text-[10px] text-slate-400 block mono"
+            >2026-10-27 16:00:00 // SYSTEM</span
           >
-            <span
-              class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"
-            ></span>
-            LIVE OPTICAL FEED
-          </div>
-          <div
-            class="absolute bottom-2 right-2 text-[10px] text-emerald-400 bg-black/80 px-1.5 py-0.5 rounded border border-emerald-900 z-20"
-            id="detected-tag"
+          ARVI OS Core initialized. Connected to Meta Model API endpoint.
+        </div>
+        <div class="p-2 bg-white rounded-lg border border-slate-100 text-slate-700">
+          <span class="text-[10px] text-slate-400 block mono font-semibold"
+            >ARVI CORE // MUSE SPARK 1.3</span
           >
-            SAM 3.1: TRACKING READY
-          </div>
+          Operational diagnostics complete. Voice synthesizer online and
+          standing by.
         </div>
+      </div>
 
-        <div class="flex flex-col gap-1.5 flex-shrink-0">
-          <div class="flex justify-between text-[11px]">
-            <span class="text-slate-400">Target Object:</span>
-            <span class="text-white font-semibold" id="target-component"
-              >Microcontroller Module</span
-            >
-          </div>
-          <div class="flex justify-between text-[11px]">
-            <span class="text-slate-400">Segmentation Mask:</span>
-            <span class="text-cyan-300 font-semibold" id="mask-status"
-              >Polygons Tracked (98.4%)</span
-            >
-          </div>
-          <div class="flex justify-between text-[11px]">
-            <span class="text-slate-400">Spatial Vector:</span>
-            <span class="text-slate-300 font-mono text-[10px]"
-              >[X: 412, Y: 184, Z: 28mm]</span
-            >
-          </div>
-        </div>
-
+      
+      <form
+        id="command-form"
+        class="zen-card rounded-full pl-2 pr-1.5 py-1.5 w-full max-w-2xl flex flex-shrink-0 items-center gap-2"
+      >
         <button
-          id="btn-scan"
-          class="flex-shrink-0 w-full py-2 bg-cyan-950 hover:bg-cyan-900 border border-cyan-600/50 text-cyan-200 text-xs font-bold rounded transition tracking-wider flex items-center justify-center gap-2"
+          type="button"
+          id="btn-mic"
+          title="Click to talk (Voice Mode)"
+          class="w-9 h-9 flex-shrink-0 rounded-full bg-slate-700 hover:bg-slate-600 text-white text-sm transition flex items-center justify-center"
         >
-          <span>TRIGGER SAM 3.1 SEGMENTATION</span>
+          <span id="mic-label">🎙</span>
         </button>
-      </section>
+        <button
+          type="button"
+          id="btn-mic-mode"
+          title="Listen-mode switch: AUTO vs Push-to-Talk"
+          class="flex-shrink-0 px-2.5 py-1 bg-slate-300 hover:bg-slate-400 text-slate-600 text-[11px] font-semibold rounded-full transition mono"
+        >
+          AUTO: OFF
+        </button>
+        <button
+          type="button"
+          id="btn-ptt"
+          title="Hold to talk (Push-to-Talk)"
+          class="hidden flex-shrink-0 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-[11px] font-semibold rounded-full transition"
+        >
+          🎙 Hold to Talk [Ctrl+Alt]
+        </button>
+        <input
+          id="cmd-input"
+          type="text"
+          placeholder="Ask ARVI or type an OS command..."
+          class="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none min-w-0"
+        />
+        <button
+          type="submit"
+          class="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs rounded-full transition flex-shrink-0"
+        >
+          Send
+        </button>
+      </form>
 
-      <!-- CENTER PANEL: ARVI CORE & DIALOGUE -->
-      <section
-        class="col-span-6 hud-border rounded-lg p-3 flex flex-col gap-3 min-h-0 h-full overflow-hidden"
+      
+      <div
+        id="vision-choice"
+        class="zen-card rounded-full px-2 py-1.5 items-center gap-2"
+        style="display: none"
       >
-        <div
-          class="flex justify-between items-center border-b border-cyan-950 pb-2 flex-shrink-0"
+        <span class="text-xs text-slate-500 pl-2">Select Camera Source:</span>
+        <button
+          id="btn-vision-laptop"
+          type="button"
+          class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-full transition"
         >
-          <h2 class="text-xs font-bold text-cyan-400 tracking-wider">
-            ARVI CENTRAL ORCHESTRATOR
-          </h2>
-          <span class="text-[10px] text-emerald-400 animate-pulse"
-            >ENGINE READY</span
-          >
-        </div>
+          Laptop
+        </button>
+        <button
+          id="btn-vision-hp"
+          type="button"
+          class="px-4 py-1.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold rounded-full transition"
+        >
+          Mobile
+        </button>
+      </div>
 
-        <div
-          class="h-40 flex-shrink-0 bg-slate-950/40 rounded border border-slate-800/80 relative flex items-center justify-center overflow-hidden"
+      
+      <div class="flex items-center gap-2">
+        <button
+          id="btn-open-vision"
+          type="button"
+          class="px-3 py-1 text-[11px] text-slate-500 hover:text-slate-700 bg-white/60 hover:bg-white border border-slate-200 rounded-full transition"
         >
-          <canvas
-            id="reactor-canvas"
-            width="400"
-            height="160"
-            class="w-full h-full"
-          ></canvas>
-          <div class="absolute text-center pointer-events-none">
-            <div
-              class="text-[11px] font-bold text-white tracking-widest"
-              id="core-state"
-            >
-              ARVI LISTENING
-            </div>
-            <div class="text-[9px] text-cyan-400">
-              LATENCY: 42ms // VPS LINK
-            </div>
-          </div>
-        </div>
-
-        <div
-          id="dialogue-box"
-          class="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 text-xs"
+          Vision
+        </button>
+        <button
+          id="btn-open-workspace"
+          type="button"
+          class="relative px-3 py-1 text-[11px] text-slate-500 hover:text-slate-700 bg-white/60 hover:bg-white border border-slate-200 rounded-full transition"
         >
-          <div
-            class="p-2 bg-slate-900/60 rounded border-l-2 border-slate-600 text-slate-300"
-          >
-            <span class="text-[10px] text-slate-500 block font-mono"
-              >2026-10-27 16:00:00 // SYSTEM</span
-            >
-            ARVI OS Core initialized. Connected to Meta Model API endpoint.
-          </div>
-          <div
-            class="p-2 bg-cyan-950/30 rounded border-l-2 border-cyan-400 text-cyan-100"
-          >
-            <span class="text-[10px] text-cyan-400 block font-mono"
-              >ARVI CORE // MUSE SPARK 1.3</span
-            >
-            Operational diagnostics complete. All perception layers, spatial
-            coordinate pipelines, and node listeners are standing by.
-          </div>
-        </div>
-
-        <form
-          id="command-form"
-          class="flex gap-2 pt-2 border-t border-cyan-950 flex-shrink-0"
-        >
-          <input
-            id="cmd-input"
-            type="text"
-            placeholder="Ketik instruksi untuk ARVI atau jalankan tactical command..."
-            class="flex-1 bg-black/60 border border-slate-700 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
-          />
-          <button
-            type="submit"
-            class="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs rounded transition tracking-wider"
-          >
-            TRANSMIT
-          </button>
-        </form>
-      </section>
-
-      <!-- RIGHT PANEL: AGENT EXECUTION & TELEMETRY -->
-      <section
-        class="col-span-3 hud-border rounded-lg p-3 flex flex-col gap-3 min-h-0 h-full overflow-hidden"
-      >
-        <div
-          class="flex justify-between items-center border-b border-cyan-950 pb-2 flex-shrink-0"
-        >
-          <h2 class="text-xs font-bold text-cyan-400 tracking-wider">
-            MUSE CODE // EXECUTION SANDBOX
-          </h2>
-          <span class="text-[10px] text-slate-400">NODE: LAPTOP_01</span>
-        </div>
-
-        <!-- Terminal Output (Scrolls independently) -->
-        <div
-          id="terminal-output"
-          class="flex-1 min-h-0 bg-black/80 rounded border border-slate-800 p-2 overflow-y-auto font-mono text-[11px] flex flex-col gap-1 text-slate-300"
-        >
-          <span class="text-slate-500">$ arvi-agent --daemon active</span>
-          <span class="text-cyan-400"
-            >[INFO] WebSocket client listening on port 8080</span
-          >
-          <span class="text-emerald-400"
-            >[READY] Awaiting tool invocation from VPS Core...</span
-          >
-        </div>
-
-        <div
-          class="flex flex-col gap-2 pt-2 border-t border-cyan-950 flex-shrink-0"
-        >
-          <div class="text-[10px] text-slate-400">TACTICAL PRESETS</div>
-          <div class="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onclick="runPreset('diag')"
-              class="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] rounded text-left"
-            >
-              > Diagnostic Ping
-            </button>
-            <button
-              type="button"
-              onclick="runPreset('hardware')"
-              class="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] rounded text-left"
-            >
-              > Scan Hardware
-            </button>
-            <button
-              type="button"
-              onclick="runPreset('code')"
-              class="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] rounded text-left"
-            >
-              > Run Muse Agent
-            </button>
-            <button
-              type="button"
-              onclick="runPreset('clear')"
-              class="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-rose-300 text-[10px] rounded text-left"
-            >
-              > Flush Terminal
-            </button>
-          </div>
-        </div>
-      </section>
+          Output
+          <span id="workspace-badge" class="hidden" aria-hidden="true"></span>
+        </button>
+      </div>
     </main>
 
-    <script>
-      const WS_URL = "ws://localhost:8080/ws/hud";
-      let ws = null;
+    
+    <div
+      class="fixed bottom-3 left-3 z-30 zen-card rounded-lg px-2.5 py-1.5 flex items-center gap-2"
+    >
+      <div class="text-[11px] text-slate-400 mono" id="core-latency">
+        LATENCY: -- // LOCKED
+      </div>
+      <div id="engine-badge">
+        <span
+          class="inline-block px-1.5 py-0.5 rounded-md bg-slate-200 text-slate-500 text-[10px] mono"
+          >ENGINE: —</span
+        >
+      </div>
+    </div>
 
-      function connectWebSocket() {
-        try {
-          ws = new WebSocket(WS_URL);
+    
+    <aside
+      id="panel-vision"
+      class="drawer zen-card fixed left-0 top-0 h-full w-80 max-w-[85vw] z-40 rounded-r-2xl p-4 flex flex-col gap-3"
+      aria-hidden="true"
+    >
+      <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+        <h2 class="text-xs font-semibold text-slate-600 tracking-wide">
+          Vision // SAM 3.1
+        </h2>
+        <button
+          id="btn-close-vision"
+          type="button"
+          class="px-2 py-0.5 text-[11px] text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded-lg transition"
+        >
+          Close
+        </button>
+      </div>
 
-          ws.onopen = () => {
-            const el = document.getElementById("ws-status");
-            el.className =
-              "text-emerald-400 font-bold flex items-center gap-1.5";
-            el.innerHTML =
-              '<span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>CONNECTED // VPS CORE';
-            appendTerminal("[SYNC] WebSocket connected to ARVI Core.");
-          };
+      <div
+        class="relative flex-1 min-h-0 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center"
+      >
+        <video
+          id="webcam-feed"
+          autoplay
+          playsinline
+          muted
+          class="absolute inset-0 w-full h-full object-cover"
+        ></video>
+        <canvas
+          id="spatial-canvas"
+          class="absolute inset-0 w-full h-full pointer-events-none z-10"
+        ></canvas>
+        <img
+          id="grounding-img"
+          alt="Bukti bidik layar AI"
+          class="absolute inset-0 w-full h-full object-contain z-30 hidden bg-black"
+        />
 
-          ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            handleServerMessage(data);
-          };
+        <div
+          class="absolute top-2 left-2 text-[10px] text-white bg-black/60 px-1.5 py-0.5 rounded-md z-20 flex items-center gap-1.5 mono"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+          LIVE OPTICAL FEED
+        </div>
+        <div
+          class="absolute bottom-2 right-2 text-[10px] text-white bg-black/60 px-1.5 py-0.5 rounded-md z-20 mono"
+          id="detected-tag"
+        >
+          SAM 3.1: TRACKING READY
+        </div>
+      </div>
 
-          ws.onclose = () => {
-            const el = document.getElementById("ws-status");
-            el.className = "text-amber-400 font-bold flex items-center gap-1.5";
-            el.innerHTML =
-              '<span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>STANDBY // LOCAL ONLY';
-            setTimeout(connectWebSocket, 4000);
-          };
-        } catch (err) {
-          console.log("Running in offline standalone mode.");
-        }
-      }
+      <div class="flex flex-col gap-1.5 text-[12px]">
+        <div class="flex justify-between">
+          <span class="text-slate-500">Target Object:</span>
+          <span class="text-slate-700 font-semibold" id="target-component"
+            >—</span
+          >
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Segmentation Mask:</span>
+          <span class="text-slate-700 font-semibold" id="mask-status"
+            >Standby — Awaiting Scan</span
+          >
+        </div>
+      </div>
 
-      function handleServerMessage(data) {
-        if (data.type === "arvi_response") {
-          appendDialogue("ARVI CORE // MUSE SPARK 1.3", data.text, "cyan");
-        } else if (data.type === "agent_log") {
-          appendTerminal(data.message);
-        }
-      }
+      <button
+        id="btn-scan"
+        class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-xl transition"
+      >
+        Scan Object
+      </button>
+    </aside>
 
-      document
-        .getElementById("command-form")
-        .addEventListener("submit", (e) => {
-          e.preventDefault();
-          const input = document.getElementById("cmd-input");
-          const val = input.value.trim();
-          if (!val) return;
+    
+    <aside
+      id="panel-workspace"
+      class="drawer zen-card fixed right-0 top-0 h-full w-96 max-w-[85vw] z-40 rounded-l-2xl p-4 flex flex-col gap-3"
+      aria-hidden="true"
+    >
+      <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+        <h2 class="text-xs font-semibold text-slate-600 tracking-wide">
+          Workspace // Output
+        </h2>
+        <button
+          id="btn-close-workspace"
+          type="button"
+          class="px-2 py-0.5 text-[11px] text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded-lg transition"
+        >
+          Close
+        </button>
+      </div>
 
-          appendDialogue("OPERATOR // YOU", val, "slate");
-          appendTerminal(`$ dispatching command: "${val}"`);
+      <div
+        id="terminal-output"
+        class="flex-1 min-h-0 bg-slate-900 rounded-xl p-2 overflow-y-auto mono text-[11px] flex flex-col gap-1 text-slate-300"
+      >
+        <span class="text-slate-500">$ arvi-agent --daemon active</span>
+        <span class="text-slate-300"
+          >[INFO] WebSocket client listening on port 8080</span
+        >
+        <span class="text-emerald-400"
+          >[READY] Awaiting tool invocation from VPS Core...</span
+        >
+      </div>
+    </aside>
 
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: "user_command", command: val }));
-          } else {
-            setTimeout(() => {
-              appendDialogue(
-                "ARVI CORE // STANDBY",
-                `Simulated response: Processing command '${val}'. Start server/main.py for live Meta API synthesis.`,
-                "cyan",
-              );
-            }, 600);
-          }
+    
+    <div id="modal-cyber" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="modal-card w-full max-w-5xl p-4 gap-3">
+        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+          <h2 class="text-sm font-semibold text-slate-700 tracking-wide">
+            Cyber-Security // Network Connection Audit
+          </h2>
+          <button
+            id="btn-close-cyber"
+            type="button"
+            title="Close"
+            class="px-2 py-0.5 text-[12px] text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded-lg transition"
+          >
+            ✕
+          </button>
+        </div>
+        <div id="cyber-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+        <div class="modal-scroll flex flex-col gap-3 pr-1">
+          <div>
+            <div class="text-[11px] font-semibold text-slate-500 mb-1 mono" id="cyber-ping-title">PING</div>
+            <pre id="cyber-ping" class="cyber-pre mono"></pre>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-slate-500 mb-1 mono">TRACERT (10 hops max)</div>
+            <pre id="cyber-tracert" class="cyber-pre mono"></pre>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-slate-500 mb-1 mono">ACTIVE CONNECTIONS</div>
+            <div class="bg-white border border-slate-200 rounded-lg overflow-x-auto">
+              <table class="cyber-table mono">
+                <thead>
+                  <tr>
+                    <th>PROTO</th>
+                    <th>LOCAL</th>
+                    <th>REMOTE</th>
+                    <th>STATUS</th>
+                    <th>PID</th>
+                    <th>PROCESS</th>
+                    <th>FLAGS</th>
+                  </tr>
+                </thead>
+                <tbody id="cyber-conn-body"></tbody>
+              </table>
+            </div>
+            <div id="cyber-conn-note" class="text-[11px] text-slate-500 mt-1 mono"></div>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-slate-500 mb-1 mono">SOC VERDICT</div>
+            <div id="cyber-vonis" class="bg-white border border-slate-200 rounded-lg p-2.5 text-[12px] text-slate-700 leading-relaxed"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-          input.value = "";
-        });
+    
+    <div id="modal-appsec" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="modal-card w-full max-w-6xl p-4 gap-3" style="height: 92vh">
+        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+          <h2 class="text-sm font-semibold text-slate-700 tracking-wide">
+            AppSec // Screen Code Audit
+          </h2>
+          <button
+            id="btn-close-appsec"
+            type="button"
+            title="Close"
+            class="px-2 py-0.5 text-[12px] text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded-lg transition"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="flex flex-col md:flex-row gap-3 min-h-0 flex-1">
+          <div class="flex-1 min-h-0 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center">
+            <img id="appsec-img" alt="Audited screen" class="max-w-full max-h-full object-contain" />
+          </div>
+          <div class="flex-1 min-h-0 modal-scroll flex flex-col gap-2 pr-1">
+            <div id="appsec-status" class="text-sm font-bold mono"></div>
+            <div class="text-[11px] font-semibold text-slate-500 mono">FINDING &amp; FIX</div>
+            <div id="appsec-detail" class="bg-white border border-slate-200 rounded-lg p-3 text-[13px] text-slate-700 leading-relaxed"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      function appendDialogue(sender, text, tone) {
-        const box = document.getElementById("dialogue-box");
-        const item = document.createElement("div");
-        const isCyan = tone === "cyan";
-        item.className = `p-2 rounded border-l-2 ${isCyan ? "bg-cyan-950/30 border-cyan-400 text-cyan-100" : "bg-slate-900/60 border-slate-500 text-slate-300"}`;
-        item.innerHTML = `
-          <span class="text-[10px] ${isCyan ? "text-cyan-400" : "text-slate-400"} block font-mono font-bold">${sender}</span>
-          <div class="mt-0.5 leading-relaxed">${text}</div>
-        `;
-        box.appendChild(item);
-        box.scrollTop = box.scrollHeight;
-      }
+    
+    <div id="modal-news" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="modal-card w-full max-w-5xl p-4 gap-3">
+        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+          <h2 class="text-sm font-semibold text-slate-700 tracking-wide" id="news-title">
+            News // Latest Headlines
+          </h2>
+          <button
+            id="btn-close-news"
+            type="button"
+            title="Close"
+            class="px-2 py-0.5 text-[12px] text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded-lg transition"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-scroll pr-1">
+          <div id="news-grid" class="news-grid"></div>
+        </div>
+      </div>
+    </div>
 
-      function appendTerminal(msg) {
-        const term = document.getElementById("terminal-output");
-        const span = document.createElement("span");
-        span.textContent = msg;
-        term.appendChild(span);
-        term.scrollTop = term.scrollHeight;
-      }
+    
+    <div id="toast-wrap" aria-live="polite"></div>
 
-      function runPreset(type) {
-        if (type === "diag") {
-          appendTerminal("$ executing self-test diagnostic ping...");
-          appendDialogue(
-            "OPERATOR // PRESET",
-            "Run full ARVI diagnostic ping.",
-            "slate",
-          );
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(
-              JSON.stringify({
-                type: "user_command",
-                command: "Execute system readiness diagnostic.",
-              }),
-            );
-          }
-        } else if (type === "hardware") {
-          appendTerminal(
-            "$ SAM 3.1: Triggering workspace component isolation...",
-          );
-          document.getElementById("target-component").textContent =
-            "Raspberry Pi & Starlink Router";
-          document.getElementById("detected-tag").textContent =
-            "DETECTED: DUAL WAN ROUTER";
-        } else if (type === "code") {
-          appendTerminal(
-            "$ Muse Code Agent: Generating automated node ping script...",
-          );
-          setTimeout(() => {
-            appendTerminal(
-              "[PATCH] Created script: ping_sweep.py on Laptop Node",
-            );
-          }, 500);
-        } else if (type === "clear") {
-          document.getElementById("terminal-output").innerHTML = "";
-        }
-      }
-
-      // Reactor Animation
-      const reactorCanvas = document.getElementById("reactor-canvas");
-      const rCtx = reactorCanvas.getContext("2d");
-      let angle = 0;
-
-      function renderReactor() {
-        rCtx.clearRect(0, 0, reactorCanvas.width, reactorCanvas.height);
-        const cx = reactorCanvas.width / 2;
-        const cy = reactorCanvas.height / 2;
-
-        rCtx.strokeStyle = "rgba(14, 165, 233, 0.4)";
-        rCtx.lineWidth = 2;
-        rCtx.beginPath();
-        rCtx.arc(cx, cy, 55, angle, angle + Math.PI * 1.2);
-        rCtx.stroke();
-
-        rCtx.strokeStyle = "rgba(56, 189, 248, 0.6)";
-        rCtx.lineWidth = 1.5;
-        rCtx.beginPath();
-        rCtx.arc(cx, cy, 42, -angle * 1.5, -angle * 1.5 + Math.PI * 0.9);
-        rCtx.stroke();
-
-        const pulse = 20 + Math.sin(angle * 3) * 3;
-        rCtx.fillStyle = "rgba(14, 165, 233, 0.15)";
-        rCtx.beginPath();
-        rCtx.arc(cx, cy, pulse, 0, Math.PI * 2);
-        rCtx.fill();
-
-        rCtx.fillStyle = "#38bdf8";
-        rCtx.beginPath();
-        rCtx.arc(cx, cy, 3, 0, Math.PI * 2);
-        rCtx.fill();
-
-        angle += 0.02;
-        requestAnimationFrame(renderReactor);
-      }
-      renderReactor();
-
-      // Optical Camera & SAM 3.1 Overlay
-      const video = document.getElementById("webcam-feed");
-      const spatialCanvas = document.getElementById("spatial-canvas");
-      const sCtx = spatialCanvas.getContext("2d");
-      let scanY = 0;
-      let scanDirection = 1;
-
-      async function initWebcam() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          appendTerminal(
-            "[OPTICAL WARN] Camera requires HTTPS or http://localhost/127.0.0.1 origin.",
-          );
-          return;
-        }
-
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { width: { ideal: 640 }, height: { ideal: 480 } },
-            audio: false,
-          });
-          video.srcObject = stream;
-          appendTerminal(
-            "[OPTICAL] Hardware camera stream mounted successfully.",
-          );
-        } catch (err) {
-          console.warn("Webcam access error:", err);
-          appendTerminal(
-            `[OPTICAL WARN] Camera access: ${err.name || "Denied"}`,
-          );
-        }
-      }
-
-      function resizeSpatialCanvas() {
-        if (spatialCanvas.parentElement) {
-          spatialCanvas.width = spatialCanvas.parentElement.clientWidth;
-          spatialCanvas.height = spatialCanvas.parentElement.clientHeight;
-        }
-      }
-      window.addEventListener("resize", resizeSpatialCanvas);
-      setTimeout(resizeSpatialCanvas, 200);
-
-      function renderSpatialOverlay() {
-        sCtx.clearRect(0, 0, spatialCanvas.width, spatialCanvas.height);
-        const w = spatialCanvas.width;
-        const h = spatialCanvas.height;
-
-        // Center Reticle
-        sCtx.strokeStyle = "rgba(14, 165, 233, 0.4)";
-        sCtx.lineWidth = 1;
-        sCtx.beginPath();
-        sCtx.moveTo(w / 2 - 15, h / 2);
-        sCtx.lineTo(w / 2 + 15, h / 2);
-        sCtx.moveTo(w / 2, h / 2 - 15);
-        sCtx.lineTo(w / 2, h / 2 + 15);
-        sCtx.stroke();
-
-        // Bounding Box
-        const boxW = w * 0.6;
-        const boxH = h * 0.6;
-        const boxX = (w - boxW) / 2;
-        const boxY = (h - boxH) / 2;
-
-        sCtx.strokeStyle = "#00f0ff";
-        sCtx.lineWidth = 2;
-        const cl = 12;
-
-        sCtx.beginPath();
-        sCtx.moveTo(boxX, boxY + cl);
-        sCtx.lineTo(boxX, boxY);
-        sCtx.lineTo(boxX + cl, boxY);
-        sCtx.stroke();
-        sCtx.beginPath();
-        sCtx.moveTo(boxX + boxW - cl, boxY);
-        sCtx.lineTo(boxX + boxW, boxY);
-        sCtx.lineTo(boxX + boxW, boxY + cl);
-        sCtx.stroke();
-        sCtx.beginPath();
-        sCtx.moveTo(boxX, boxY + boxH - cl);
-        sCtx.lineTo(boxX, boxY + boxH);
-        sCtx.lineTo(boxX + cl, boxY + boxH);
-        sCtx.stroke();
-        sCtx.beginPath();
-        sCtx.moveTo(boxX + boxW - cl, boxY + boxH);
-        sCtx.lineTo(boxX + boxW, boxY + boxH);
-        sCtx.lineTo(boxX + boxW, boxY + boxH - cl);
-        sCtx.stroke();
-
-        // Laser Scan line
-        sCtx.strokeStyle = "rgba(0, 240, 255, 0.8)";
-        sCtx.lineWidth = 1.5;
-        sCtx.beginPath();
-        sCtx.moveTo(boxX, boxY + scanY);
-        sCtx.lineTo(boxX + boxW, boxY + scanY);
-        sCtx.stroke();
-
-        scanY += 1.8 * scanDirection;
-        if (scanY > boxH || scanY < 0) scanDirection *= -1;
-
-        sCtx.fillStyle = "#38bdf8";
-        sCtx.font = "9px monospace";
-        sCtx.fillText("SAM 3.1 // ZERO-SHOT TARGETING", boxX + 4, boxY - 6);
-
-        requestAnimationFrame(renderSpatialOverlay);
-      }
-
-      document.getElementById("btn-scan").addEventListener("click", () => {
-        appendTerminal(
-          "[SAM 3.1] Optical frame captured. Segmenting polygons...",
-        );
-        document.getElementById("detected-tag").textContent =
-          "DETECTED: HARDWARE COMPONENT";
-        document.getElementById("mask-status").textContent =
-          "Mask Computed (99.1%)";
-      });
-
-      // Init routines
-      initWebcam();
-      renderSpatialOverlay();
-      connectWebSocket();
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="app.js"></script>
   </body>
 </html>
